@@ -1,0 +1,2009 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Ecoturismo — Control de Vuelos</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=Epilogue:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+:root{
+  --green:#2d6a4f; --green-dark:#1b4332; --green-light:#52b788; --green-pale:#d8f3dc;
+  --bg:#f7f8f7; --bg2:#ffffff; --bg3:#f0f2f1;
+  --surface:#ffffff; --surface2:#f4f6f5;
+  --border:#dde2df; --border2:#b5c4bc;
+  --text:#1a2e25; --text2:#4a6358; --text3:#8fa89e;
+  --danger:#c0392b; --danger-bg:#fdf0ef;
+  --warn:#b8680a; --warn-bg:#fef6ec;
+  --info:#1a6896; --info-bg:#e8f4fb;
+  --radius:7px; --radius-lg:12px;
+  --mono:'JetBrains Mono',monospace;
+  --display:'Syne',sans-serif;
+  --body:'Epilogue',sans-serif;
+  --sidebar-w:230px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;overflow:hidden;}
+body{background:var(--bg);font-family:var(--body);color:var(--text);font-size:14px;display:flex;flex-direction:column;}
+
+.topbar{display:flex;align-items:center;gap:14px;background:var(--green-dark);padding:0 22px;height:52px;flex-shrink:0;}
+.topbar-logo{font-family:var(--display);font-size:14px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#fff;}
+.topbar-date{margin-left:auto;font-family:var(--mono);font-size:11px;color:rgba(255,255,255,.5);}
+
+.layout{display:flex;flex:1;overflow:hidden;}
+
+.sidebar{width:var(--sidebar-w);background:var(--green-dark);display:flex;flex-direction:column;flex-shrink:0;}
+.sidebar-section{padding:16px 16px 6px;font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.35);}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 18px;cursor:pointer;font-size:13px;color:rgba(255,255,255,.65);border-left:3px solid transparent;transition:all .15s;}
+.nav-item:hover{color:#fff;background:rgba(255,255,255,.07);}
+.nav-item.active{color:#fff;border-left-color:var(--green-light);background:rgba(255,255,255,.1);}
+.nav-item .ni{font-size:15px;width:20px;text-align:center;flex-shrink:0;}
+.nav-divider{height:1px;background:rgba(255,255,255,.1);margin:6px 0;}
+.sidebar-bottom{margin-top:auto;border-top:1px solid rgba(255,255,255,.1);padding:10px;}
+.sidebar-btn{width:100%;padding:8px 10px;font-family:var(--body);font-size:12px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:var(--radius);color:rgba(255,255,255,.7);cursor:pointer;text-align:left;transition:all .15s;margin-bottom:5px;}
+.sidebar-btn:hover{background:rgba(255,255,255,.15);color:#fff;}
+.sidebar-btn.danger{color:#ff8a80;border-color:rgba(255,100,80,.3);}
+.db-info{font-size:10px;color:rgba(255,255,255,.3);text-align:center;padding:4px 0;}
+
+.main{flex:1;overflow-y:auto;padding:24px;}
+.page{display:none;}.page.active{display:block;}
+.page-header{margin-bottom:20px;}
+.page-title{font-family:var(--display);font-size:22px;font-weight:700;color:var(--text);}
+.page-sub{font-size:13px;color:var(--text3);margin-top:3px;}
+
+.metrics{display:grid;gap:10px;margin-bottom:20px;}
+.m2{grid-template-columns:repeat(2,1fr);}
+.m3{grid-template-columns:repeat(3,1fr);}
+.m4{grid-template-columns:repeat(4,1fr);}
+.m5{grid-template-columns:repeat(5,1fr);}
+.metric{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px;}
+.metric-lbl{font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);margin-bottom:6px;}
+.metric-val{font-family:var(--mono);font-size:22px;font-weight:500;color:var(--text);}
+.metric-unit{font-size:12px;color:var(--text3);margin-left:2px;}
+.metric.green{border-left:3px solid var(--green);}.metric.green .metric-val{color:var(--green);}
+.metric.warn{border-left:3px solid var(--warn);}.metric.warn .metric-val{color:var(--warn);}
+.metric.danger{border-left:3px solid var(--danger);}.metric.danger .metric-val{color:var(--danger);}
+.metric.info{border-left:3px solid var(--info);}.metric.info .metric-val{color:var(--info);}
+
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:14px;overflow:hidden;}
+.card-head{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border);background:var(--bg3);}
+.card-title{font-family:var(--display);font-size:14px;font-weight:600;color:var(--text);}
+.card-body{padding:16px;}
+
+.form-block{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px;margin-bottom:18px;}
+.form-block-title{font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);margin-bottom:12px;}
+.form-row{display:grid;gap:10px;margin-bottom:10px;}
+.fg{display:flex;flex-direction:column;gap:4px;}
+.fg label{font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:.07em;text-transform:uppercase;color:var(--text3);}
+input,select,textarea{font-family:var(--body);font-size:13px;color:var(--text);background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius);padding:0 10px;height:36px;width:100%;transition:border-color .15s;}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--green);}
+input::placeholder,textarea::placeholder{color:var(--text3);}
+select option{background:var(--bg2);}
+textarea{height:60px;padding:8px 10px;resize:vertical;}
+
+.btn{font-family:var(--body);font-size:13px;font-weight:500;padding:0 14px;height:36px;border-radius:var(--radius);border:1px solid var(--border2);background:var(--surface);color:var(--text2);cursor:pointer;transition:all .15s;white-space:nowrap;display:inline-flex;align-items:center;gap:6px;}
+.btn:hover{background:var(--bg3);color:var(--text);}
+.btn-green{background:var(--green);border-color:var(--green);color:#fff;font-weight:600;}
+.btn-green:hover{background:var(--green-dark);}
+.btn-sm{height:28px;padding:0 10px;font-size:12px;}
+.btn-xs{height:24px;padding:0 8px;font-size:11px;}
+.btn-danger{color:var(--danger);border-color:#e8b4b0;}
+.btn-danger:hover{background:var(--danger-bg);}
+.btn-warn{color:var(--warn);border-color:#e8cfa8;}
+.btn-warn:hover{background:var(--warn-bg);}
+.btn-ghost{border-color:transparent;background:transparent;}
+.btn-ghost:hover{border-color:var(--border2);background:var(--bg3);}
+.btn-info{color:var(--info);border-color:#a8cce8;}
+.btn-info:hover{background:var(--info-bg);}
+
+.list-hdr{font-family:var(--mono);font-size:10px;letter-spacing:.07em;text-transform:uppercase;color:var(--text3);padding:5px 14px;margin-bottom:4px;display:grid;gap:10px;align-items:center;}
+.data-row{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:3px;display:grid;gap:10px;align-items:center;padding:9px 14px;transition:all .15s;}
+.data-row:hover{border-color:var(--border2);}
+.data-row.selected{border-color:var(--green);background:#f0faf4;}
+.vuelo-hk{font-family:var(--mono);font-size:13px;font-weight:500;color:var(--green);}
+.kg-cell{font-family:var(--mono);font-size:12px;text-align:right;}
+.op-pills{display:flex;flex-wrap:wrap;gap:3px;}
+.op-pill{display:inline-flex;align-items:center;gap:3px;padding:2px 6px;border-radius:3px;font-size:10px;font-weight:600;}
+
+/* PANEL */
+.detail-panel{position:fixed;top:52px;right:0;bottom:0;width:700px;background:var(--bg2);border-left:2px solid var(--border);display:none;flex-direction:column;z-index:100;overflow:hidden;box-shadow:-4px 0 20px rgba(0,0,0,.08);}
+.detail-panel.open{display:flex;}
+.detail-header{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0;background:var(--green-dark);}
+.detail-hk{font-family:var(--display);font-size:20px;font-weight:700;color:#fff;}
+.detail-meta{font-size:11px;color:rgba(255,255,255,.55);margin-top:2px;}
+.detail-body{flex:1;overflow-y:auto;}
+.two-cols{display:grid;grid-template-columns:1fr 1fr;min-height:100%;}
+.detail-col{display:flex;flex-direction:column;overflow:hidden;}
+.detail-col:first-child{border-right:1px solid var(--border);}
+.col-head{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--bg3);flex-shrink:0;}
+.col-title{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);}
+.col-total{font-family:var(--mono);font-size:13px;font-weight:500;}
+.items-scroll{flex:1;padding:10px 12px;overflow-y:auto;min-height:60px;}
+
+.item-row{display:flex;align-items:flex-start;gap:8px;padding:8px 10px;border-radius:var(--radius);background:var(--bg3);border:1px solid var(--border);margin-bottom:5px;}
+.item-row:hover{border-color:var(--border2);}
+.item-dot{width:8px;height:8px;border-radius:50%;margin-top:5px;flex-shrink:0;}
+.item-info{flex:1;min-width:0;}
+.item-name{font-size:13px;font-weight:500;color:var(--text);}
+.item-meta{font-size:11px;color:var(--text3);margin-top:2px;}
+.item-kg{font-family:var(--mono);font-size:12px;font-weight:500;flex-shrink:0;padding-top:2px;}
+.item-actions{display:flex;gap:3px;flex-shrink:0;}
+.devuelto-badge{font-size:10px;color:var(--warn);background:var(--warn-bg);padding:1px 5px;border-radius:3px;margin-left:4px;}
+.abc-badge{font-size:10px;color:var(--danger);background:var(--danger-bg);border:1px solid #e8b4b0;padding:2px 6px;border-radius:3px;font-weight:600;}
+
+.add-multiple{border-top:1px solid var(--border);padding:10px 12px;background:var(--surface);flex-shrink:0;}
+.add-multi-hdr{font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;}
+.multi-items{display:flex;flex-direction:column;gap:5px;max-height:160px;overflow-y:auto;padding-right:2px;}
+.multi-item-row{display:grid;gap:5px;align-items:center;}
+.rm-btn{width:22px;height:22px;border-radius:4px;border:1px solid var(--border);background:none;color:var(--text3);cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0;}
+.rm-btn:hover{background:var(--danger-bg);color:var(--danger);border-color:var(--danger);}
+.add-link{font-size:12px;color:var(--green);cursor:pointer;background:none;border:none;font-family:var(--body);padding:0;}
+.add-link:hover{opacity:.7;}
+.multi-footer{display:flex;align-items:center;justify-content:space-between;margin-top:8px;}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);display:none;align-items:center;justify-content:center;z-index:200;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius-lg);width:500px;box-shadow:0 20px 60px rgba(0,0,0,.15);max-height:90vh;overflow-y:auto;}
+.modal-wide{width:600px;}
+.modal-head{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--bg3);border-radius:var(--radius-lg) var(--radius-lg) 0 0;position:sticky;top:0;z-index:1;}
+.modal-title{font-family:var(--display);font-size:15px;font-weight:600;color:var(--text);}
+.modal-body{padding:18px 20px;}
+.modal-foot{padding:12px 20px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;background:var(--bg3);border-radius:0 0 var(--radius-lg) var(--radius-lg);position:sticky;bottom:0;}
+
+.tbl{width:100%;border-collapse:collapse;font-size:13px;}
+.tbl th{text-align:left;padding:8px 10px;font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:.07em;text-transform:uppercase;color:var(--text3);border-bottom:1px solid var(--border);background:var(--bg3);}
+.tbl td{padding:9px 10px;border-bottom:1px solid var(--border);vertical-align:middle;}
+.tbl tr:last-child td{border-bottom:none;}
+.tbl tfoot td{background:var(--bg3);font-family:var(--mono);font-weight:600;border-top:2px solid var(--border2);}
+.tbl tbody tr:hover td{background:var(--bg3);}
+.mono{font-family:var(--mono);}
+
+.filter-bar{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px;margin-bottom:18px;}
+.bar-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.bar-label{width:140px;font-size:12px;color:var(--text2);text-align:right;flex-shrink:0;}
+.bar-track{flex:1;height:7px;background:var(--bg3);border-radius:4px;overflow:hidden;border:1px solid var(--border);}
+.bar-fill{height:100%;border-radius:4px;}
+.bar-val{font-family:var(--mono);font-size:11px;color:var(--text2);width:75px;text-align:right;}
+
+/* RESERVAS */
+.dia-block{margin-bottom:22px;}
+.dia-hdr{display:flex;align-items:center;gap:10px;margin-bottom:7px;padding-bottom:6px;border-bottom:2px solid var(--green-pale);}
+.dia-fecha{font-family:var(--display);font-size:14px;font-weight:700;color:var(--text);}
+.dia-total{font-family:var(--mono);font-size:12px;color:var(--green);background:#f0faf4;border:1px solid var(--green-light);border-radius:4px;padding:3px 8px;}
+.badge-cancel{background:var(--danger-bg);color:var(--danger);font-size:10px;padding:2px 6px;border-radius:3px;font-weight:600;}
+.tag{display:inline-flex;align-items:center;padding:2px 7px;border-radius:4px;font-size:11px;font-weight:500;}
+.pax-names-list{margin-top:4px;display:flex;flex-wrap:wrap;gap:3px;}
+.pax-name-tag{font-size:10px;background:var(--bg3);border:1px solid var(--border);border-radius:3px;padding:1px 5px;color:var(--text2);}
+
+/* CONFIG */
+.config-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px;}
+.config-list{display:flex;flex-direction:column;gap:5px;max-height:200px;overflow-y:auto;margin-bottom:10px;}
+.config-item{display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);}
+.config-item-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.config-item-name{flex:1;font-size:13px;}
+.config-add-row{display:grid;grid-template-columns:1fr auto;gap:8px;}
+
+/* AVIONES CONFIG TABLE */
+.avion-row{display:grid;gap:10px;align-items:center;padding:9px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:4px;}
+
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
+.empty-state{text-align:center;padding:2rem;color:var(--text3);font-size:13px;}
+.empty-icon{font-size:28px;margin-bottom:8px;opacity:.4;}
+.sep-line{display:flex;align-items:center;gap:10px;padding:12px 2px 5px;}
+.sep-line .sep-lbl{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.07em;text-transform:uppercase;}
+.sep-line .sep-bar{flex:1;height:1px;background:var(--border);}
+</style>
+</head>
+<body>
+
+<!-- SETUP SCREEN -->
+<div id="setup-screen" style="display:none;position:fixed;inset:0;background:var(--green-dark);align-items:center;justify-content:center;z-index:10000;font-family:var(--body)">
+  <div style="background:#fff;border-radius:14px;padding:36px;width:520px;max-width:95vw;box-shadow:0 24px 60px rgba(0,0,0,.4)">
+    <div style="text-align:center;margin-bottom:24px">
+      <div style="font-size:32px;margin-bottom:8px">✈</div>
+      <div style="font-family:var(--display);font-size:20px;font-weight:700;color:var(--green-dark)">Ecoturismo Sierra de La Macarena</div>
+      <div style="font-size:13px;color:var(--text3);margin-top:6px">Conecta con Firebase para sincronizar los datos entre computadores</div>
+    </div>
+    <div style="background:#f0faf4;border:1px solid var(--green-light);border-radius:8px;padding:12px 14px;margin-bottom:18px;font-size:12px;color:var(--green-dark);line-height:1.6">
+      <strong>Cómo obtener las credenciales:</strong><br>
+      1. Ve a <strong>console.firebase.google.com</strong> → Crear proyecto<br>
+      2. Agrega una app Web → copia el objeto <code>firebaseConfig</code><br>
+      3. En Firestore Database → Crear base de datos → modo producción<br>
+      4. En Reglas de Firestore pega: <code>allow read, write: if true;</code>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+      <div style="display:flex;flex-direction:column;gap:4px"><label style="font-size:10px;font-weight:600;color:var(--text3);letter-spacing:.06em;text-transform:uppercase">API Key</label><input id="fb-apiKey" placeholder="AIzaSy..." style="height:34px;font-size:12px"></div>
+      <div style="display:flex;flex-direction:column;gap:4px"><label style="font-size:10px;font-weight:600;color:var(--text3);letter-spacing:.06em;text-transform:uppercase">Auth Domain</label><input id="fb-authDomain" placeholder="proyecto.firebaseapp.com" style="height:34px;font-size:12px"></div>
+      <div style="display:flex;flex-direction:column;gap:4px"><label style="font-size:10px;font-weight:600;color:var(--text3);letter-spacing:.06em;text-transform:uppercase">Project ID</label><input id="fb-projectId" placeholder="mi-proyecto-123" style="height:34px;font-size:12px"></div>
+      <div style="display:flex;flex-direction:column;gap:4px"><label style="font-size:10px;font-weight:600;color:var(--text3);letter-spacing:.06em;text-transform:uppercase">Storage Bucket</label><input id="fb-storageBucket" placeholder="proyecto.appspot.com" style="height:34px;font-size:12px"></div>
+      <div style="display:flex;flex-direction:column;gap:4px"><label style="font-size:10px;font-weight:600;color:var(--text3);letter-spacing:.06em;text-transform:uppercase">Messaging Sender ID</label><input id="fb-messagingSenderId" placeholder="123456789" style="height:34px;font-size:12px"></div>
+      <div style="display:flex;flex-direction:column;gap:4px"><label style="font-size:10px;font-weight:600;color:var(--text3);letter-spacing:.06em;text-transform:uppercase">App ID</label><input id="fb-appId" placeholder="1:123:web:abc..." style="height:34px;font-size:12px"></div>
+    </div>
+    <button onclick="guardarConfigFirebase()" style="width:100%;height:42px;background:var(--green-dark);color:#fff;border:none;border-radius:8px;font-family:var(--body);font-size:15px;font-weight:600;cursor:pointer;margin-top:6px">Conectar y entrar →</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app-layout" style="display:none;flex-direction:column;height:100vh">
+<div class="topbar">
+  <div class="topbar-logo">✈ Ecoturismo Sierra de La Macarena</div>
+  <div class="topbar-date" id="topbar-date"></div>
+</div>
+<div class="layout">
+<nav class="sidebar">
+  <div class="sidebar-section">Módulos</div>
+  <div class="nav-item active" onclick="goPage('vuelos')" id="nav-vuelos"><span class="ni">✈</span>Vuelos</div>
+  <div class="nav-item" onclick="goPage('reservas')" id="nav-reservas"><span class="ni">📋</span>Reservas de pasajes</div>
+  <div class="nav-item" onclick="goPage('pagos')" id="nav-pagos"><span class="ni">💰</span>ABC y Tasas</div>
+  <div class="nav-item" onclick="goPage('reportes')" id="nav-reportes"><span class="ni">📊</span>Reportes</div>
+  <div class="nav-item" onclick="goPage('config')" id="nav-config"><span class="ni">⚙</span>Configuración</div>
+  <div class="nav-divider"></div>
+  <div class="sidebar-bottom">
+    <button class="sidebar-btn" onclick="exportarJSON()">⬇ Exportar respaldo</button>
+    <button class="sidebar-btn" onclick="importarJSON()">⬆ Importar JSON</button>
+    <button class="sidebar-btn danger" onclick="limpiarDatos()">✕ Limpiar datos</button>
+    <button class="sidebar-btn danger" onclick="olvidarConfigFirebase()">🔑 Cambiar Firebase</button>
+    <div class="db-info" id="db-info"></div>
+  </div>
+</nav>
+
+<main class="main" id="main-scroll">
+
+<!-- ═══ VUELOS ═══ -->
+<div class="page active" id="page-vuelos">
+  <div class="page-header"><div class="page-title">Vuelos</div><div class="page-sub">Registro de vuelos y pagos a dueños de aviones.</div></div>
+
+  <div style="display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:20px">
+    <button class="btn btn-ghost" id="tab-vuelos-activos-btn" onclick="switchVuelosTab('vuelos')" style="border-bottom:2px solid var(--green);border-radius:0;color:var(--green);font-weight:600">Vuelos</button>
+    <button class="btn btn-ghost" id="tab-vuelos-pagos-btn" onclick="switchVuelosTab('pagos')" style="border-bottom:2px solid transparent;border-radius:0">Pagos de vuelos</button>
+  </div>
+
+  <!-- TAB VUELOS -->
+  <div id="tab-vuelos-contenido">
+    <div class="form-block">
+      <div class="form-block-title">Nuevo vuelo</div>
+      <div class="form-row" style="grid-template-columns:1fr 1fr 1fr 1fr 1fr auto">
+        <div class="fg"><label>Fecha</label><input type="date" id="nv-fecha"></div>
+        <div class="fg"><label>HK del avión</label><select id="nv-hk" onchange="autoFillVuelo()"></select></div>
+        <div class="fg"><label>Destino</label><select id="nv-destino"></select></div>
+        <div class="fg"><label>Despachador</label><input type="text" id="nv-despacha" readonly placeholder="Se llena automáticamente" style="background:#f0faf4;color:var(--green);font-weight:500"></div>
+        <div class="fg"><label>Kilaje permitido (kg)</label><input type="number" id="nv-kilaje" readonly placeholder="Se llena automáticamente" style="background:#f0faf4;color:var(--green);font-weight:500"></div>
+        <div style="display:flex;align-items:flex-end"><button class="btn btn-green" onclick="crearVuelo()">+ Crear vuelo</button></div>
+      </div>
+    </div>
+    <div class="metrics m4">
+      <div class="metric green"><div class="metric-lbl">Vuelos hoy</div><div class="metric-val" id="m-nvuelos">0</div></div>
+      <div class="metric"><div class="metric-lbl">Carga neta</div><div class="metric-val" id="m-carga">0<span class="metric-unit">kg</span></div></div>
+      <div class="metric"><div class="metric-lbl">Peso pasajeros</div><div class="metric-val" id="m-pax">0<span class="metric-unit">kg</span></div></div>
+      <div class="metric green"><div class="metric-lbl">Peso total hoy</div><div class="metric-val" id="m-total">0<span class="metric-unit">kg</span></div></div>
+    </div>
+    <div class="list-hdr" style="grid-template-columns:90px 80px 100px 1fr 90px 70px 70px 85px 50px">
+      <span>HK</span><span>Fecha</span><span>Destino</span><span>Operadores carga</span>
+      <span>Despachador</span><span style="text-align:right">Carga</span><span style="text-align:right">Pax</span>
+      <span style="text-align:right">Total</span><span></span>
+    </div>
+    <div id="lista-vuelos"><div class="empty-state"><div class="empty-icon">✈</div>No hay vuelos. Crea el primero arriba.</div></div>
+  </div>
+
+  <!-- TAB PAGOS DE VUELOS -->
+  <div id="tab-vuelos-pagos-contenido" style="display:none">
+    <div style="display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:20px">
+      <button class="btn btn-ghost" id="vp-tab1-btn" onclick="switchVPTab('saldo')" style="border-bottom:2px solid var(--green);border-radius:0;color:var(--green);font-weight:600;font-size:12px">Saldo por dueño</button>
+      <button class="btn btn-ghost" id="vp-tab2-btn" onclick="switchVPTab('pagos')" style="border-bottom:2px solid transparent;border-radius:0;font-size:12px">Registrar pago</button>
+      <button class="btn btn-ghost" id="vp-tab3-btn" onclick="switchVPTab('deuda')" style="border-bottom:2px solid transparent;border-radius:0;font-size:12px">Deuda anterior</button>
+    </div>
+
+    <div id="vp-tab-saldo">
+      <div id="vp-saldos-cont"><div class="empty-state"><div class="empty-icon">💵</div>No hay aviones configurados aún. Agrega aviones en Configuración.</div></div>
+    </div>
+
+    <div id="vp-tab-pagos" style="display:none">
+      <div class="form-block">
+        <div class="form-block-title">Registrar pago a dueño</div>
+        <div class="form-row" style="grid-template-columns:1fr 1fr 1fr auto">
+          <div class="fg"><label>Fecha del pago</label><input type="date" id="vp-fecha"></div>
+          <div class="fg"><label>HK del avión</label><select id="vp-hk"></select></div>
+          <div class="fg"><label>Monto pagado ($)</label><input type="number" id="vp-monto" placeholder="Ej: 500000" min="0"></div>
+          <div style="display:flex;align-items:flex-end"><button class="btn btn-green" onclick="registrarPagoVuelo()">+ Registrar</button></div>
+        </div>
+        <div class="fg" style="max-width:400px"><label>Observación (opcional)</label><input type="text" id="vp-obs" placeholder="Ej: Abono semana 1"></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><div class="card-title">Historial de pagos a dueños</div></div>
+        <div style="overflow-x:auto"><table class="tbl">
+          <thead><tr><th>Fecha</th><th>HK</th><th>Dueño</th><th>Monto pagado</th><th>Observación</th><th></th></tr></thead>
+          <tbody id="vp-pagos-tbody"></tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <div id="vp-tab-deuda" style="display:none">
+      <div class="form-block">
+        <div class="form-block-title">Ingresar deuda anterior al sistema</div>
+        <div style="font-size:13px;color:var(--text2);margin-bottom:12px">Registra deudas que ya existían antes de usar la app. Se suman a la deuda base de cada avión.</div>
+        <div class="form-row" style="grid-template-columns:1fr 1fr 1fr auto">
+          <div class="fg"><label>HK del avión</label><select id="vpd-hk"></select></div>
+          <div class="fg"><label>Monto de deuda anterior ($)</label><input type="number" id="vpd-monto" placeholder="Ej: 2500000" min="0"></div>
+          <div class="fg"><label>Observación</label><input type="text" id="vpd-obs" placeholder="Ej: Deuda acumulada a mayo 2025"></div>
+          <div style="display:flex;align-items:flex-end"><button class="btn btn-green" onclick="registrarDeudaAnteriorVuelo()">+ Guardar</button></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head"><div class="card-title">Deudas anteriores registradas</div></div>
+        <div style="overflow-x:auto"><table class="tbl">
+          <thead><tr><th>HK</th><th>Dueño</th><th>Monto</th><th>Observación</th><th></th></tr></thead>
+          <tbody id="vp-deudas-tbody"></tbody>
+        </table></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ RESERVAS ═══ -->
+<div class="page" id="page-reservas">
+  <div class="page-header"><div class="page-title">Reservas de pasajes</div><div class="page-sub">Reservas activas y historial en un solo lugar.</div></div>
+
+  <div style="display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:20px">
+    <button class="btn btn-ghost" id="tab-res-activas-btn" onclick="switchReservasTab('activas')" style="border-bottom:2px solid var(--green);border-radius:0;color:var(--green);font-weight:600">Reservas activas</button>
+    <button class="btn btn-ghost" id="tab-res-historial-btn" onclick="switchReservasTab('historial')" style="border-bottom:2px solid transparent;border-radius:0">Historial</button>
+  </div>
+
+  <!-- TAB ACTIVAS -->
+  <div id="tab-res-activas">
+    <div class="form-block">
+      <div class="form-block-title">Nueva reserva</div>
+      <div class="form-row" style="grid-template-columns:1fr 1fr 1fr 1fr 1fr">
+        <div class="fg"><label>Fecha del vuelo</label><input type="date" id="res-fecha"></div>
+        <div class="fg"><label>Destino</label><select id="res-destino"></select></div>
+        <div class="fg"><label>Empresa</label><select id="res-empresa"></select></div>
+        <div class="fg"><label>Asesor</label><select id="res-asesor"></select></div>
+        <div class="fg"><label>Lugar de pago</label><select id="res-lugar">
+          <option value="La Macarena">La Macarena</option>
+          <option value="Villavicencio">Villavicencio</option>
+        </select></div>
+      </div>
+      <div class="form-row" style="grid-template-columns:80px 1fr 1fr 1fr auto">
+        <div class="fg"><label>Cant. pax</label><input type="number" id="res-cant" min="1" value="1" oninput="updatePaxFields()"></div>
+        <div class="fg"><label>Teléfono</label><input type="text" id="res-tel" placeholder="3001234567"></div>
+        <div class="fg"><label>Valor tiquete (opcional)</label><input type="number" id="res-valor" placeholder="Ej: 350000" min="0"></div>
+        <div class="fg"><label>Observaciones</label><input type="text" id="res-obs" placeholder="Equipaje extra, etc."></div>
+        <div style="display:flex;align-items:flex-end"><button class="btn btn-green" onclick="crearReserva()">+ Guardar</button></div>
+      </div>
+      <div id="res-nombres-container" style="margin-top:6px"></div>
+    </div>
+    <div id="lista-reservas"><div class="empty-state"><div class="empty-icon">📋</div>No hay reservas activas desde hoy.</div></div>
+  </div>
+
+  <!-- TAB HISTORIAL -->
+  <div id="tab-res-historial" style="display:none">
+    <div id="lista-historial"><div class="empty-state"><div class="empty-icon">🗂</div>No hay reservas pasadas.</div></div>
+  </div>
+</div>
+
+<!-- ═══ PAGOS ABC / TASAS ═══ -->
+<div class="page" id="page-pagos">
+  <div class="page-header"><div class="page-title">ABC y Tasas</div><div class="page-sub">Resumen de pagos al despachador. ABC: $2.000/kg extra. Tasas: $24.000/pasajero.</div></div>
+
+  <!-- TABS -->
+  <div style="display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:20px">
+    <button class="btn btn-ghost" id="tab-resumen-btn" onclick="switchPagosTab('resumen')" style="border-bottom:2px solid var(--green);border-radius:0;color:var(--green);font-weight:600">Resumen de deuda</button>
+    <button class="btn btn-ghost" id="tab-libro-btn" onclick="switchPagosTab('libro')" style="border-bottom:2px solid transparent;border-radius:0">Libro de pagos</button>
+  </div>
+
+  <!-- TAB RESUMEN -->
+  <div id="tab-resumen">
+    <div class="form-block">
+      <div class="form-block-title">Filtrar</div>
+      <div class="form-row" style="grid-template-columns:1fr 1fr 1fr 1fr auto">
+        <div class="fg"><label>Desde</label><input type="date" id="p-desde"></div>
+        <div class="fg"><label>Hasta</label><input type="date" id="p-hasta"></div>
+        <div class="fg"><label>HK del avión (opcional)</label><select id="p-hk"></select></div>
+        <div class="fg"><label>Despachador (opcional)</label><select id="p-desp"></select></div>
+        <div style="display:flex;align-items:flex-end"><button class="btn btn-green" onclick="generarPagos()">Ver pagos</button></div>
+      </div>
+    </div>
+    <div id="pagos-out"><div class="empty-state"><div class="empty-icon">💰</div>Selecciona un rango y da clic en "Ver pagos".</div></div>
+  </div>
+
+  <!-- TAB LIBRO -->
+  <div id="tab-libro" style="display:none">
+    <div style="display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:16px">
+      <button class="btn btn-ghost" id="libro-sub1-btn" onclick="switchLibroSub('pago')" style="border-bottom:2px solid var(--green);border-radius:0;color:var(--green);font-weight:600;font-size:12px">Registrar pago</button>
+      <button class="btn btn-ghost" id="libro-sub2-btn" onclick="switchLibroSub('deuda')" style="border-bottom:2px solid transparent;border-radius:0;font-size:12px">Ingresar deuda anterior</button>
+    </div>
+    <div id="libro-sub-pago">
+      <div class="form-block">
+        <div class="form-block-title">Registrar pago realizado</div>
+        <div class="form-row" style="grid-template-columns:1fr 1fr 1fr 1fr auto">
+          <div class="fg"><label>Fecha del pago</label><input type="date" id="lp-fecha"></div>
+          <div class="fg"><label>Despachador</label><select id="lp-desp"></select></div>
+          <div class="fg"><label>Kg ABC pagados</label><input type="number" id="lp-abc" placeholder="0" min="0" step="0.1"></div>
+          <div class="fg"><label>Tasas pagadas (# pasajeros)</label><input type="number" id="lp-tasas" placeholder="0" min="0" step="1"></div>
+          <div style="display:flex;align-items:flex-end"><button class="btn btn-green" onclick="registrarPago()">+ Registrar</button></div>
+        </div>
+        <div class="fg" style="max-width:400px"><label>Observación (opcional)</label><input type="text" id="lp-obs" placeholder="Ej: Pago parcial semana 1"></div>
+      </div>
+    </div>
+    <div id="libro-sub-deuda" style="display:none">
+      <div class="form-block">
+        <div class="form-block-title">Ingresar deuda anterior al sistema</div>
+        <div style="font-size:13px;color:var(--text2);margin-bottom:12px">Registra deudas con despachadores que ya existían antes de usar la app. Se suman al total que debes.</div>
+        <div class="form-row" style="grid-template-columns:1fr 1fr 1fr auto">
+          <div class="fg"><label>Despachador</label><select id="ld-desp"></select></div>
+          <div class="fg"><label>Kg ABC anteriores</label><input type="number" id="ld-abc" placeholder="0" min="0" step="0.1"></div>
+          <div class="fg"><label>Tasas anteriores (# pax)</label><input type="number" id="ld-tasas" placeholder="0" min="0" step="1"></div>
+          <div style="display:flex;align-items:flex-end"><button class="btn btn-green" onclick="registrarDeudaAnterior()">+ Guardar</button></div>
+        </div>
+        <div class="fg" style="max-width:400px"><label>Observación</label><input type="text" id="ld-obs" placeholder="Ej: A Eduardo se le deben 205 kg ABC"></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><div class="card-title">Deudas anteriores registradas</div></div>
+        <div style="overflow-x:auto"><table class="tbl">
+          <thead><tr><th>Despachador</th><th>Kg ABC</th><th>Valor ABC</th><th>Tasas</th><th>Valor tasas</th><th>Observación</th><th></th></tr></thead>
+          <tbody id="ld-tbody"></tbody>
+        </table></div>
+      </div>
+    </div>
+    <!-- Saldo por despachador -->
+    <div id="libro-saldos" style="margin-bottom:18px"></div>
+    <!-- Historial pagos - solo visible en sub-pago -->
+    <div id="libro-historial-wrap">
+      <div class="card">
+        <div class="card-head"><div class="card-title">Historial de pagos registrados</div></div>
+        <div style="overflow-x:auto"><table class="tbl">
+          <thead><tr><th>Fecha</th><th>Despachador</th><th>Kg ABC pagados</th><th>Valor ABC</th><th>Tasas pagadas</th><th>Valor tasas</th><th>Obs.</th><th></th></tr></thead>
+          <tbody id="libro-tbody"></tbody>
+        </table></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ REPORTES ═══ -->
+<div class="page" id="page-reportes">
+  <div class="page-header"><div class="page-title">Reportes</div><div class="page-sub">Dashboard general con métricas de todos los módulos.</div></div>
+  <div id="reporte-out"><div class="empty-state"><div class="empty-icon">📊</div>Cargando...</div></div>
+</div>
+
+<!-- ═══ CONFIGURACIÓN ═══ -->
+<div class="page" id="page-config">
+  <div class="page-header"><div class="page-title">Configuración</div><div class="page-sub">Administra aviones, destinos, empresas, asesores y despachadores.</div></div>
+
+  <div style="display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:20px">
+    <button class="btn btn-ghost" id="cfg-tab1-btn" onclick="switchCfgTab(1)" style="border-bottom:2px solid var(--green);border-radius:0;color:var(--green);font-weight:600">Aviones / HK</button>
+    <button class="btn btn-ghost" id="cfg-tab2-btn" onclick="switchCfgTab(2)" style="border-bottom:2px solid transparent;border-radius:0">Reservas de pasajes</button>
+    <button class="btn btn-ghost" id="cfg-tab3-btn" onclick="switchCfgTab(3)" style="border-bottom:2px solid transparent;border-radius:0">Vuelos / Kilaje</button>
+  </div>
+
+  <!-- CFG TAB 1 -->
+  <div id="cfg-tab1">
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-head"><div class="card-title">✈ Aviones / HK</div><button class="btn btn-sm btn-green" onclick="abrirModalAvion(null)">+ Agregar avión</button></div>
+      <div style="overflow-x:auto"><table class="tbl"><thead><tr><th>HK</th><th>Empresa</th><th>Dueño</th><th>Pax máx.</th><th>Kilaje permitido</th><th>Valor vuelo (sin com.)</th><th>Despachador</th><th></th></tr></thead><tbody id="tbody-aviones"></tbody></table></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px">
+      <div class="card">
+        <div class="card-head"><div class="card-title">Dueños de aviones</div></div>
+        <div class="card-body">
+          <div class="config-list" id="cfg-duenos-list"></div>
+          <div class="config-add-row"><input type="text" id="cfg-dueno-input" placeholder="Nombre del dueño" style="height:32px;font-size:12px"><button class="btn btn-sm btn-green" onclick="addCfgItem('duenos','cfg-dueno-input')">+ Agregar</button></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head"><div class="card-title">Despachadores</div></div>
+        <div class="card-body">
+          <div class="config-list" id="cfg-desps-list"></div>
+          <div class="config-add-row"><input type="text" id="cfg-desp-input" placeholder="Nombre despachador" style="height:32px;font-size:12px"><button class="btn btn-sm btn-green" onclick="addCfgItem('desps','cfg-desp-input')">+ Agregar</button></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head"><div class="card-title">Destinos (vuelos)</div></div>
+        <div class="card-body">
+          <div class="config-list" id="cfg-destinos-list"></div>
+          <div class="config-add-row"><input type="text" id="cfg-destino-input" placeholder="Nuevo destino" style="height:32px;font-size:12px"><button class="btn btn-sm btn-green" onclick="addCfgItem('destinos','cfg-destino-input')">+ Agregar</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CFG TAB 2 -->
+  <div id="cfg-tab2" style="display:none">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div class="card">
+        <div class="card-head"><div class="card-title">Destinos (reservas)</div></div>
+        <div class="card-body">
+          <div class="config-list" id="cfg-destinos-res-list"></div>
+          <div class="config-add-row"><input type="text" id="cfg-destino-res-input" placeholder="Nuevo destino" style="height:32px;font-size:12px"><button class="btn btn-sm btn-green" onclick="addCfgItem('destinosRes','cfg-destino-res-input')">+ Agregar</button></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head"><div class="card-title">Asesores</div></div>
+        <div class="card-body">
+          <div class="config-list" id="cfg-asesores-list"></div>
+          <div class="config-add-row"><input type="text" id="cfg-asesor-input" placeholder="Nombre asesor" style="height:32px;font-size:12px"><button class="btn btn-sm btn-green" onclick="addCfgItem('asesores','cfg-asesor-input')">+ Agregar</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CFG TAB 3 -->
+  <div id="cfg-tab3" style="display:none">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div class="card">
+        <div class="card-head"><div class="card-title">Empresas de carga</div></div>
+        <div class="card-body">
+          <div class="config-list" id="cfg-carga-list"></div>
+          <div class="config-add-row"><input type="text" id="cfg-carga-input" placeholder="Nombre empresa" style="height:32px;font-size:12px"><button class="btn btn-sm btn-green" onclick="addCfgItem('opsCarga','cfg-carga-input')">+ Agregar</button></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head"><div class="card-title">Empresas de pasajeros</div></div>
+        <div class="card-body">
+          <div class="config-list" id="cfg-pax-list"></div>
+          <div class="config-add-row"><input type="text" id="cfg-pax-input" placeholder="Nombre empresa" style="height:32px;font-size:12px"><button class="btn btn-sm btn-green" onclick="addCfgItem('opsPax','cfg-pax-input')">+ Agregar</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</main>
+</div>
+
+<!-- PANEL DETALLE VUELO -->
+<div class="detail-panel" id="detail-panel">
+  <div class="detail-header">
+    <div style="flex:1">
+      <div class="detail-hk" id="dp-hk">—</div>
+      <div class="detail-meta" id="dp-meta">—</div>
+    </div>
+    <div id="dp-abc-tag" style="margin-right:6px"></div>
+    <div id="dp-totales" style="display:flex;gap:5px;flex-wrap:wrap"></div>
+    <div style="display:flex;gap:5px;margin-left:8px">
+      <button class="btn btn-sm btn-danger" onclick="eliminarVueloActivo()">🗑</button>
+      <button class="btn btn-sm" style="color:#fff;border-color:rgba(255,255,255,.3);background:transparent" onclick="cerrarPanel()">✕</button>
+    </div>
+  </div>
+  <div class="detail-body">
+    <div class="two-cols">
+      <div class="detail-col">
+        <div class="col-head"><span class="col-title">Carga</span><div style="display:flex;align-items:center;gap:8px"><span id="dp-abc-inline"></span><span class="col-total" id="dp-total-carga" style="color:var(--info)">0 kg</span></div></div>
+        <div class="items-scroll" id="dp-items-carga"></div>
+        <div class="add-multiple">
+          <div class="add-multi-hdr"><span>Agregar carga</span><button class="btn btn-xs btn-green" onclick="guardarCarga()">Guardar todo</button></div>
+          <div class="multi-items" id="multi-carga-rows"></div>
+          <div class="multi-footer"><button class="add-link" onclick="addFilaCarga()">+ Agregar fila</button></div>
+        </div>
+      </div>
+      <div class="detail-col">
+        <div class="col-head"><span class="col-title">Pasajeros</span><span class="col-total" id="dp-total-pax" style="color:var(--green)">0 kg</span></div>
+        <div class="items-scroll" id="dp-items-pax"></div>
+        <div class="add-multiple">
+          <div class="add-multi-hdr"><span>Agregar pasajeros</span><button class="btn btn-xs btn-green" onclick="guardarPax()">Guardar todo</button></div>
+          <div class="multi-items" id="multi-pax-rows"></div>
+          <div class="multi-footer"><button class="add-link" onclick="addFilaPax()">+ Agregar fila</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DEVOLUCIÓN -->
+<div class="modal-overlay" id="modal-devol">
+  <div class="modal">
+    <div class="modal-head"><div class="modal-title">↩ Registrar devolución</div><button class="btn btn-sm btn-ghost" onclick="cerrarModal('modal-devol')">✕</button></div>
+    <div class="modal-body">
+      <div class="fg" style="margin-bottom:12px"><label>Ítem</label><select id="devol-sel" onchange="actualizarDevol()"></select></div>
+      <div class="form-row" style="grid-template-columns:1fr 1fr">
+        <div class="fg"><label>Kg brutos enviados</label><input type="number" id="devol-bruto" readonly></div>
+        <div class="fg"><label>Kg devueltos</label><input type="number" id="devol-kg" placeholder="0.0" min="0" step="0.1" oninput="previewDevol()"></div>
+      </div>
+      <div id="devol-preview" style="display:none;margin-top:10px;padding:9px 12px;background:var(--warn-bg);border:1px solid #e8cfa8;border-radius:var(--radius);font-size:12px;color:var(--warn)"></div>
+    </div>
+    <div class="modal-foot"><button class="btn" onclick="cerrarModal('modal-devol')">Cancelar</button><button class="btn btn-warn" onclick="aplicarDevolucion()">Aplicar devolución</button></div>
+  </div>
+</div>
+
+<!-- MODAL EDITAR RESERVA -->
+<div class="modal-overlay" id="modal-res">
+  <div class="modal modal-wide">
+    <div class="modal-head"><div class="modal-title">Editar reserva</div><button class="btn btn-sm btn-ghost" onclick="cerrarModal('modal-res')">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="edit-res-id">
+      <div class="form-row" style="grid-template-columns:1fr 1fr 1fr">
+        <div class="fg"><label>Destino</label><select id="edit-res-destino"></select></div>
+        <div class="fg"><label>Empresa</label><select id="edit-res-empresa"></select></div>
+        <div class="fg"><label>Asesor</label><select id="edit-res-asesor"></select></div>
+      </div>
+      <div class="form-row" style="grid-template-columns:1fr 1fr 1fr">
+        <div class="fg"><label>Lugar de pago</label><select id="edit-res-lugar">
+          <option value="La Macarena">La Macarena</option>
+          <option value="Villavicencio">Villavicencio</option>
+        </select></div>
+        <div class="fg"><label>Teléfono</label><input type="text" id="edit-res-tel"></div>
+        <div class="fg"><label>Valor tiquete</label><input type="number" id="edit-res-valor" placeholder="Opcional"></div>
+      </div>
+      <div class="fg" style="margin-bottom:10px"><label>Observaciones</label><textarea id="edit-res-obs"></textarea></div>
+      <div id="edit-res-nombres-container"></div>
+    </div>
+    <div class="modal-foot"><button class="btn" onclick="cerrarModal('modal-res')">Cancelar</button><button class="btn btn-green" onclick="guardarEditReserva()">Guardar cambios</button></div>
+  </div>
+</div>
+
+<!-- MODAL AVIÓN -->
+<div class="modal-overlay" id="modal-avion">
+  <div class="modal modal-wide">
+    <div class="modal-head"><div class="modal-title" id="modal-avion-title">Agregar avión</div><button class="btn btn-sm btn-ghost" onclick="cerrarModal('modal-avion')">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="avion-edit-hk">
+      <div class="form-row" style="grid-template-columns:1fr 1fr 1fr">
+        <div class="fg"><label>HK (matrícula)</label><input type="text" id="avion-hk" placeholder="Ej: HK-1234"></div>
+        <div class="fg"><label>Empresa</label><input type="text" id="avion-empresa" placeholder="Ej: Avianline"></div>
+        <div class="fg"><label>Dueño</label><select id="avion-dueno"></select></div>
+      </div>
+      <div class="form-row" style="grid-template-columns:1fr 1fr 1fr">
+        <div class="fg"><label>Pax máx.</label><input type="number" id="avion-pax" placeholder="Ej: 9" min="1"></div>
+        <div class="fg"><label>Kilaje permitido (kg)</label><input type="number" id="avion-kilaje" placeholder="Ej: 450" min="0"></div>
+        <div class="fg"><label>Valor vuelo sin comisión</label><input type="number" id="avion-valor" placeholder="Ej: 2500000" min="0"></div>
+      </div>
+      <div class="form-row" style="grid-template-columns:1fr">
+        <div class="fg"><label>Despachador asignado</label><select id="avion-despacha"></select></div>
+      </div>
+    </div>
+    <div class="modal-foot"><button class="btn" onclick="cerrarModal('modal-avion')">Cancelar</button><button class="btn btn-green" onclick="guardarAvion()">Guardar avión</button></div>
+  </div>
+</div><!-- /app-layout -->
+
+<script>
+// ══════════════════════════════════════════
+// DEFAULTS
+// ══════════════════════════════════════════
+const DEFAULT_CFG = {
+  aviones: [],
+  destinos: ['La Macarena','Bogotá'],
+  destinosRes: ['La Macarena','Cumaribo','Bogotá'],
+  opsCarga: ['Inter','Avianline','La Tía','Aeroser','Estelares','Ecoturismo','Otro'],
+  opsPax: ['Ecoturismo','Agencia','La Tía','Aeroser','Avianline','SAC','Estelares'],
+  asesores: ['HQ','Aleja','Marina','Pablo','Juan','Yeraldin','Oriana','Rosita','Junior'],
+  desps: ['Eduardo','Gonzalo Carrillo'],
+  duenos: ['Carlos Jimenez','Viancha'],
+};
+
+const PRECIO_ABC = 2000;
+const PRECIO_TASA = 24000;
+
+const OP_COLORS = ['#2d6a4f','#1a6896','#6d4c9e','#b8680a','#c0392b','#2a7a6e','#5a7a2a','#7a3a6e','#1a5a8a','#8a5a1a','#4a7a1a','#7a4a2a'];
+
+// ══════════════════════════════════════════
+// FIREBASE CONFIG
+// ══════════════════════════════════════════
+// Las credenciales se guardan en localStorage del navegador (solo configuración, no datos)
+const FB_KEY = 'eco_firebase_cfg';
+let db = null; // Firestore instance
+let _cache = {}; // local cache for sync reads
+
+function loadFbCfg(){ try{return JSON.parse(localStorage.getItem(FB_KEY)||'null');}catch(e){return null;} }
+function saveFbCfg(c){ localStorage.setItem(FB_KEY, JSON.stringify(c)); }
+
+// Initialize Firebase and load all collections into local cache
+async function initFirebase(){
+  // Credenciales Firebase — Ecoturismo Transporte
+  const cfg = {
+    apiKey:            "AIzaSyC1kvYxNZyUGAT5oAqpasUrgFnGUfPXoig",
+    authDomain:        "ecoturismo-transporte.firebaseapp.com",
+    projectId:         "ecoturismo-transporte",
+    storageBucket:     "ecoturismo-transporte.firebasestorage.app",
+    messagingSenderId: "355744615649",
+    appId:             "1:355744615649:web:6cc5a3ebc0f0a690bf7ba0"
+  };
+  try{
+    const { initializeApp, getApps } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js');
+    const { getFirestore, collection, getDocs, doc, setDoc, deleteDoc, connectFirestoreEmulator }
+      = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js');
+
+    const app = getApps().length ? getApps()[0] : initializeApp(cfg);
+    db = getFirestore(app, 'default');
+
+    // Load all collections into cache
+    showLoading('Conectando con la base de datos...');
+    const cols = ['vuelos','reservas','cfg_doc','pagos','deudas_ant','pagos_vuelos','deudas_vuelos'];
+    for(const col of cols){
+      const snap = await getDocs(collection(db, col));
+      _cache[col] = [];
+      snap.forEach(d => _cache[col].push({...d.data(), _docId: d.id}));
+    }
+    // cfg_doc is a single document
+    _cache['cfg_obj'] = _cache['cfg_doc'].length > 0 ? _cache['cfg_doc'][0] : null;
+
+    hideLoading();
+    document.getElementById('app-layout').style.display='flex';
+    populateAllSelects(); renderLista(); updatePaxFields(); updateDbInfo();
+    setTimeout(()=>{ const el=document.getElementById('lp-fecha'); if(el)el.value=today(); const el2=document.getElementById('vp-fecha'); if(el2)el2.value=today(); },0);
+
+  } catch(err){
+    hideLoading();
+    // Show detailed error for debugging
+    alert('Error: ' + err.code + '\n' + err.message);
+  }
+}
+
+function showLoading(msg){
+  let el=document.getElementById('loading-overlay');
+  if(!el){ el=document.createElement('div'); el.id='loading-overlay';
+    el.style.cssText='position:fixed;inset:0;background:rgba(27,67,50,.92);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;color:#fff;font-family:var(--body)';
+    el.innerHTML='<div style="font-size:28px;margin-bottom:16px">✈</div><div id="loading-msg" style="font-size:15px;opacity:.9"></div>';
+    document.body.appendChild(el);
+  }
+  document.getElementById('loading-msg').textContent=msg||'Cargando...';
+  el.style.display='flex';
+}
+function hideLoading(){ const el=document.getElementById('loading-overlay'); if(el) el.style.display='none'; }
+
+function showSetupScreen(){
+  document.getElementById('setup-screen').style.display='flex';
+  document.getElementById('app-layout').style.display='none';
+  const cfg=loadFbCfg()||{};
+  ['apiKey','authDomain','projectId','storageBucket','messagingSenderId','appId'].forEach(k=>{
+    const el=document.getElementById('fb-'+k); if(el) el.value=cfg[k]||'';
+  });
+}
+
+// ══ FIRESTORE HELPERS ══
+async function fsSet(col, id, data){
+  if(!db) return;
+  const { doc, setDoc } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js');
+  await setDoc(doc(db, col, String(id)), data);
+  // update cache
+  if(!_cache[col]) _cache[col]=[];
+  const idx=_cache[col].findIndex(x=>x._docId===String(id));
+  const entry={...data, _docId:String(id)};
+  if(idx>=0) _cache[col][idx]=entry; else _cache[col].push(entry);
+}
+async function fsDel(col, id){
+  if(!db) return;
+  const { doc, deleteDoc } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js');
+  await deleteDoc(doc(db, col, String(id)));
+  if(_cache[col]) _cache[col]=_cache[col].filter(x=>x._docId!==String(id));
+}
+
+// Strip internal _docId before storing
+function clean(obj){ const c={...obj}; delete c._docId; return c; }
+
+// ══════════════════════════════════════════
+// DB — Firestore-backed (synchronous API via cache)
+// ══════════════════════════════════════════
+function loadVuelos(){ return (_cache['vuelos']||[]).map(clean); }
+function saveVuelos(arr){
+  _cache['vuelos'] = arr.map(v=>({...v, _docId:String(v.id)}));
+  // async write — fire and forget
+  arr.forEach(v => fsSet('vuelos', v.id, clean(v)));
+}
+function loadReservas(){ return (_cache['reservas']||[]).map(clean); }
+function saveReservas(arr){
+  _cache['reservas'] = arr.map(r=>({...r, _docId:String(r.id)}));
+  arr.forEach(r => fsSet('reservas', r.id, clean(r)));
+}
+function loadCfg(){
+  const c = _cache['cfg_obj'] ? clean(_cache['cfg_obj']) : null;
+  if(c) return Object.assign({}, DEFAULT_CFG, c);
+  return JSON.parse(JSON.stringify(DEFAULT_CFG));
+}
+function saveCfg(c){
+  _cache['cfg_obj'] = {...c, _docId:'main'};
+  fsSet('cfg_doc', 'main', c);
+}
+function getVuelo(id){ return loadVuelos().find(v=>v.id===id); }
+function saveVuelo(v){
+  const arr=loadVuelos(); const i=arr.findIndex(x=>x.id===v.id);
+  if(i>=0) arr[i]=v; else arr.push(v);
+  saveVuelos(arr);
+}
+function loadPagos(){ return (_cache['pagos']||[]).map(clean); }
+function savePagos(arr){
+  _cache['pagos'] = arr.map(p=>({...p, _docId:String(p.id)}));
+  arr.forEach(p => fsSet('pagos', p.id, clean(p)));
+}
+function loadDeudasAnt(){ return (_cache['deudas_ant']||[]).map(clean); }
+const saveDeudasAnt = arr => {
+  _cache['deudas_ant'] = arr.map(d=>({...d, _docId:String(d.id)}));
+  arr.forEach(d => fsSet('deudas_ant', d.id, clean(d)));
+};
+function loadPagosVuelos(){ return (_cache['pagos_vuelos']||[]).map(clean); }
+const savePagosVuelos = arr => {
+  _cache['pagos_vuelos'] = arr.map(p=>({...p, _docId:String(p.id)}));
+  arr.forEach(p => fsSet('pagos_vuelos', p.id, clean(p)));
+};
+function loadDeudasVuelos(){ return (_cache['deudas_vuelos']||[]).map(clean); }
+const saveDeudasVuelos = arr => {
+  _cache['deudas_vuelos'] = arr.map(d=>({...d, _docId:String(d.id)}));
+  arr.forEach(d => fsSet('deudas_vuelos', d.id, clean(d)));
+};
+
+// ══ Delete helpers (need to also remove from Firestore) ══
+function deleteFromCollection(col, id){
+  if(_cache[col]) _cache[col]=_cache[col].filter(x=>x._docId!==String(id));
+  fsDel(col, id);
+}
+
+// Override delete-based saves for collections where we remove items
+const _origSaveVuelos = saveVuelos;
+// Deletions are handled by filtering and re-saving, which calls fsSet for remaining
+// and we need to also delete removed ones. Patch:
+function saveVuelosWithDelete(newArr){
+  const oldIds=new Set((_cache['vuelos']||[]).map(x=>x._docId));
+  const newIds=new Set(newArr.map(v=>String(v.id)));
+  oldIds.forEach(id=>{ if(!newIds.has(id)) fsDel('vuelos',id); });
+  saveVuelos(newArr);
+}
+function saveReservasWithDelete(newArr){
+  const oldIds=new Set((_cache['reservas']||[]).map(x=>x._docId));
+  const newIds=new Set(newArr.map(r=>String(r.id)));
+  oldIds.forEach(id=>{ if(!newIds.has(id)) fsDel('reservas',id); });
+  saveReservas(newArr);
+}
+function savePagosWithDelete(newArr){
+  const oldIds=new Set((_cache['pagos']||[]).map(x=>x._docId));
+  const newIds=new Set(newArr.map(p=>String(p.id)));
+  oldIds.forEach(id=>{ if(!newIds.has(id)) fsDel('pagos',id); });
+  savePagos(newArr);
+}
+function saveDeudasAntWithDelete(newArr){
+  const oldIds=new Set((_cache['deudas_ant']||[]).map(x=>x._docId));
+  const newIds=new Set(newArr.map(d=>String(d.id)));
+  oldIds.forEach(id=>{ if(!newIds.has(id)) fsDel('deudas_ant',id); });
+  saveDeudasAnt(newArr);
+}
+function savePagosVuelosWithDelete(newArr){
+  const oldIds=new Set((_cache['pagos_vuelos']||[]).map(x=>x._docId));
+  const newIds=new Set(newArr.map(p=>String(p.id)));
+  oldIds.forEach(id=>{ if(!newIds.has(id)) fsDel('pagos_vuelos',id); });
+  savePagosVuelos(newArr);
+}
+function saveDeudasVuelosWithDelete(newArr){
+  const oldIds=new Set((_cache['deudas_vuelos']||[]).map(x=>x._docId));
+  const newIds=new Set(newArr.map(d=>String(d.id)));
+  oldIds.forEach(id=>{ if(!newIds.has(id)) fsDel('deudas_vuelos',id); });
+  saveDeudasVuelos(newArr);
+}
+
+// ══════════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════════
+function fmt(n){ return (Math.round(n*10)/10).toLocaleString('es-CO',{minimumFractionDigits:1,maximumFractionDigits:1}); }
+function fmtMoney(n){ return '$'+Math.round(n).toLocaleString('es-CO'); }
+function today(){ return new Date().toISOString().split('T')[0]; }
+function fmtF(s){ return new Date(s+'T12:00:00').toLocaleDateString('es-CO',{weekday:'short',day:'numeric',month:'short',year:'numeric'}); }
+function fmtFLargo(s){ return new Date(s+'T12:00:00').toLocaleDateString('es-CO',{weekday:'long',day:'numeric',month:'long',year:'numeric'}); }
+function totalCarga(v){ return v.cargas.reduce((s,c)=>s+(c.kg-(c.devueltoKg||0)),0); }
+function totalPax(v){ return v.pasajeros.reduce((s,p)=>s+p.kg,0); }
+function totalVuelo(v){ return totalCarga(v)+totalPax(v); }
+function abcKg(v){ const lim=v.kilaje||0; if(!lim) return 0; return Math.max(0,totalVuelo(v)-lim); }
+function opColor(name){ if(!name)return '#888'; const idx=Math.abs([...name].reduce((h,c)=>h+c.charCodeAt(0),0))%OP_COLORS.length; return OP_COLORS[idx]; }
+function opPillHTML(name){ const c=opColor(name); return `<span class="op-pill" style="color:${c};background:${c}18">${name}</span>`; }
+function getAvion(hk){ return loadCfg().aviones.find(a=>a.hk===hk); }
+
+// Build <select> from array
+function buildSelect(id, arr, val, inline=false, emptyLabel=null){
+  const sel=document.getElementById(id); if(!sel)return;
+  sel.innerHTML=(emptyLabel!==null?`<option value="">${emptyLabel}</option>`:'')+arr.map(k=>`<option value="${k}" ${k===val?'selected':''}>${k}</option>`).join('');
+}
+function buildSelectHTML(id, arr, val, style=''){
+  return `<select id="${id}" style="${style}">${arr.map(k=>`<option value="${k}" ${k===val?'selected':''}>${k}</option>`).join('')}</select>`;
+}
+
+// ══════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════
+document.getElementById('nv-fecha').value=today();
+document.getElementById('res-fecha').value=today();
+['r-desde','p-desde'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=today().slice(0,7)+'-01'; });
+['r-hasta','p-hasta'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=today(); });
+// lp-fecha set after DOM ready
+setTimeout(()=>{ const el=document.getElementById('lp-fecha'); if(el) el.value=today(); },0);
+
+function updateDate(){ document.getElementById('topbar-date').textContent=new Date().toLocaleDateString('es-CO',{weekday:'long',day:'numeric',month:'long',year:'numeric'}); }
+updateDate(); setInterval(updateDate,60000);
+
+function populateAllSelects(){
+  const cfg=loadCfg();
+  buildSelect('nv-hk', cfg.aviones.map(a=>a.hk), '', false, '— Seleccionar HK —');
+  buildSelect('nv-destino', cfg.destinos, cfg.destinos[0]||'');
+  buildSelect('res-destino', cfg.destinosRes, cfg.destinosRes[0]||'');
+  buildSelect('res-empresa', cfg.opsPax, cfg.opsPax[0]||'');
+  buildSelect('res-asesor', cfg.asesores, cfg.asesores[0]||'');
+  buildSelect('edit-res-destino', cfg.destinosRes, '');
+  buildSelect('edit-res-empresa', cfg.opsPax, '');
+  buildSelect('edit-res-asesor', cfg.asesores, '');
+  buildSelect('p-hk', cfg.aviones.map(a=>a.hk), '', false, 'Todos los aviones');
+  buildSelect('p-desp', cfg.desps, '', false, 'Todos los despachadores');
+  buildSelect('lp-desp', cfg.desps, cfg.desps[0]||'');
+  buildSelect('r-op', cfg.opsCarga.filter(Boolean), '', false, 'Todos los operadores');
+  buildSelect('avion-despacha', cfg.desps, '');
+  buildSelect('avion-dueno', cfg.duenos||[], '', false, '— Seleccionar dueño —');
+  updatePaxFields();
+}
+
+// ══ AUTO FILL VUELO ══
+function autoFillVuelo(){
+  const hk=document.getElementById('nv-hk').value;
+  const avion=getAvion(hk);
+  if(avion){
+    document.getElementById('nv-despacha').value=avion.despacha||'—';
+    document.getElementById('nv-kilaje').value=avion.kilaje||'';
+  } else {
+    document.getElementById('nv-despacha').value='';
+    document.getElementById('nv-kilaje').value='';
+  }
+}
+
+// ══════════════════════════════════════════
+// NAV
+// ══════════════════════════════════════════
+function goPage(page){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  const navEl=document.getElementById('nav-'+page); if(navEl) navEl.classList.add('active');
+  if(page==='vuelos'){ renderLista(); renderVPSaldo(); renderVPPagos(); renderVPDeudas(); populateVPSelects(); }
+  if(page==='reservas') renderReservas();
+  if(page==='config') renderConfig();
+  if(page==='pagos'){ renderLibro(); populateAllSelects(); }
+  if(page==='reportes') renderDashboard();
+  updateDbInfo();
+}
+
+function switchVuelosTab(tab){
+  const isVuelos=tab==='vuelos';
+  document.getElementById('tab-vuelos-contenido').style.display=isVuelos?'block':'none';
+  document.getElementById('tab-vuelos-pagos-contenido').style.display=isVuelos?'none':'block';
+  document.getElementById('tab-vuelos-activos-btn').style.cssText=isVuelos?'border-bottom:2px solid var(--green);border-radius:0;color:var(--green);font-weight:600':'border-bottom:2px solid transparent;border-radius:0';
+  document.getElementById('tab-vuelos-pagos-btn').style.cssText=isVuelos?'border-bottom:2px solid transparent;border-radius:0':'border-bottom:2px solid var(--green);border-radius:0;color:var(--green);font-weight:600';
+  if(!isVuelos){ renderVPSaldo(); populateVPSelects(); }
+}
+
+function switchReservasTab(tab){
+  const isActivas=tab==='activas';
+  document.getElementById('tab-res-activas').style.display=isActivas?'block':'none';
+  document.getElementById('tab-res-historial').style.display=isActivas?'none':'block';
+  document.getElementById('tab-res-activas-btn').style.cssText=isActivas?'border-bottom:2px solid var(--green);border-radius:0;color:var(--green);font-weight:600':'border-bottom:2px solid transparent;border-radius:0';
+  document.getElementById('tab-res-historial-btn').style.cssText=isActivas?'border-bottom:2px solid transparent;border-radius:0':'border-bottom:2px solid var(--green);border-radius:0;color:var(--green);font-weight:600';
+  if(!isActivas) renderHistorial();
+}
+
+function switchCfgTab(n){
+  [1,2,3].forEach(i=>{
+    document.getElementById('cfg-tab'+i).style.display=i===n?'block':'none';
+    const btn=document.getElementById('cfg-tab'+i+'-btn');
+    btn.style.cssText=i===n?'border-bottom:2px solid var(--green);border-radius:0;color:var(--green);font-weight:600':'border-bottom:2px solid transparent;border-radius:0';
+  });
+}
+
+function switchVPTab(tab){
+  ['saldo','pagos','deuda'].forEach(t=>{
+    document.getElementById('vp-tab-'+t).style.display=t===tab?'block':'none';
+  });
+  const map={saldo:'vp-tab1-btn',pagos:'vp-tab2-btn',deuda:'vp-tab3-btn'};
+  Object.keys(map).forEach(t=>{
+    document.getElementById(map[t]).style.cssText=t===tab?'border-bottom:2px solid var(--green);border-radius:0;color:var(--green);font-weight:600':'border-bottom:2px solid transparent;border-radius:0';
+  });
+  if(tab==='saldo') renderVPSaldo();
+  if(tab==='pagos'){ renderVPPagos(); populateVPSelects(); }
+  if(tab==='deuda'){ renderVPDeudas(); populateVPSelects(); }
+}
+function updateDbInfo(){
+  const v=loadVuelos().length,r=loadReservas().length;
+  document.getElementById('db-info').textContent=v+' vuelo(s) · '+r+' reserva(s)';
+}
+
+// ══════════════════════════════════════════
+// VUELOS
+// ══════════════════════════════════════════
+let currentVueloId=null;
+
+function crearVuelo(){
+  const fecha=document.getElementById('nv-fecha').value;
+  const hk=document.getElementById('nv-hk').value;
+  const destino=document.getElementById('nv-destino').value;
+  if(!fecha||!hk){alert('Selecciona fecha y HK del avión');return;}
+  const avion=getAvion(hk);
+  const v={
+    id:Date.now(), fecha, hk, destino,
+    despacha: avion?.despacha||'',
+    kilaje: parseFloat(avion?.kilaje)||0,
+    cargas:[], pasajeros:[]
+  };
+  const db=loadVuelos(); db.push(v); saveVuelos(db);
+  renderLista(); abrirPanel(v.id); updateDbInfo();
+}
+
+function renderLista(){
+  const db=loadVuelos();
+  const hoy=today();
+  const vHoy=db.filter(v=>v.fecha===hoy);
+  const tc=vHoy.reduce((s,v)=>s+totalCarga(v),0);
+  const tp=vHoy.reduce((s,v)=>s+totalPax(v),0);
+  document.getElementById('m-nvuelos').textContent=vHoy.length;
+  document.getElementById('m-carga').innerHTML=fmt(tc)+'<span class="metric-unit">kg</span>';
+  document.getElementById('m-pax').innerHTML=fmt(tp)+'<span class="metric-unit">kg</span>';
+  document.getElementById('m-total').innerHTML=fmt(tc+tp)+'<span class="metric-unit">kg</span>';
+
+  const cont=document.getElementById('lista-vuelos');
+  if(db.length===0){cont.innerHTML='<div class="empty-state"><div class="empty-icon">✈</div>No hay vuelos.</div>';return;}
+  const fechas=[...new Set(db.map(v=>v.fecha))].sort((a,b)=>b.localeCompare(a));
+  cont.innerHTML='';
+  fechas.forEach(f=>{
+    const isHoy=f===hoy;
+    const sep=document.createElement('div');
+    sep.className='sep-line';
+    sep.innerHTML=`<span class="sep-lbl" style="color:${isHoy?'var(--green)':'var(--text3)'}">${isHoy?'HOY — ':''}${fmtF(f)}</span><span class="sep-bar"></span>`;
+    cont.appendChild(sep);
+    db.filter(v=>v.fecha===f).forEach(v=>{
+      const opsSet=[...new Set(v.cargas.map(c=>c.operador))];
+      const tc=totalCarga(v),tp=totalPax(v),tt=tc+tp,abc=abcKg(v);
+      const row=document.createElement('div');
+      row.className='data-row'+(currentVueloId===v.id?' selected':'');
+      row.style.gridTemplateColumns='90px 80px 100px 1fr 90px 70px 70px 85px 50px';
+      row.onclick=()=>abrirPanel(v.id);
+      row.innerHTML=`
+        <div class="vuelo-hk">${v.hk}</div>
+        <div style="font-size:11px;color:var(--text2)">${new Date(v.fecha+'T12:00:00').toLocaleDateString('es-CO',{day:'numeric',month:'short'})}</div>
+        <div style="font-size:12px;color:var(--text2)">${v.destino||'—'}</div>
+        <div><div class="op-pills">${opsSet.map(opPillHTML).join('')}${abc>0?`<span class="abc-badge">ABC ${fmt(abc)}kg</span>`:''}</div></div>
+        <div style="font-size:12px;color:var(--text2)">${v.despacha||'—'}</div>
+        <div class="kg-cell" style="color:var(--info)">${fmt(tc)}</div>
+        <div class="kg-cell" style="color:var(--green)">${fmt(tp)}</div>
+        <div class="kg-cell" style="font-weight:500">${fmt(tt)} kg</div>
+        <div style="text-align:right"><button class="btn btn-xs btn-ghost" onclick="event.stopPropagation();abrirPanel(${v.id})">Abrir</button></div>`;
+      cont.appendChild(row);
+    });
+  });
+}
+
+// ══ PANEL ══
+function abrirPanel(vid){
+  currentVueloId=vid;
+  document.getElementById('main-scroll').style.paddingRight='720px';
+  document.getElementById('detail-panel').classList.add('open');
+  renderLista(); renderPanel(); initFilasCarga(); initFilasPax();
+}
+function cerrarPanel(){
+  currentVueloId=null;
+  document.getElementById('main-scroll').style.paddingRight='24px';
+  document.getElementById('detail-panel').classList.remove('open');
+  renderLista();
+}
+function renderPanel(){
+  if(!currentVueloId)return;
+  const v=getVuelo(currentVueloId); if(!v)return;
+  const tc=totalCarga(v),tp=totalPax(v),tt=tc+tp,abc=abcKg(v);
+  document.getElementById('dp-hk').textContent=v.hk;
+  document.getElementById('dp-meta').textContent=fmtF(v.fecha)+(v.destino?' · '+v.destino:'')+(v.despacha?' · Despachador: '+v.despacha:'')+(v.kilaje?' · Límite: '+v.kilaje+' kg':'');
+  document.getElementById('dp-total-carga').textContent=fmt(tc)+' kg';
+  document.getElementById('dp-total-pax').textContent=fmt(tp)+' kg';
+  document.getElementById('dp-abc-tag').innerHTML='';
+  document.getElementById('dp-abc-inline').innerHTML=abc>0?`<span class="abc-badge">ABC ${fmt(abc)} kg</span>`:'';
+  document.getElementById('dp-totales').innerHTML=`
+    <span class="tag" style="background:var(--info-bg);color:var(--info)">Carga: ${fmt(tc)} kg</span>
+    <span class="tag" style="background:#f0faf4;color:var(--green)">Pax: ${fmt(tp)} kg</span>
+    <span class="tag" style="background:var(--bg3);font-weight:600">Total: ${fmt(tt)} kg</span>
+    ${v.kilaje?`<span class="tag" style="background:var(--bg3);color:var(--text3)">Límite: ${v.kilaje} kg</span>`:''}
+  `;
+  // Carga
+  const cc=document.getElementById('dp-items-carga');
+  cc.innerHTML=v.cargas.length===0?'<div class="empty-state" style="padding:1.5rem"><div class="empty-icon">📦</div>Sin carga aún</div>':
+    v.cargas.map((c,i)=>{
+      const col=opColor(c.operador); const neto=c.kg-(c.devueltoKg||0);
+      return `<div class="item-row">
+        <div class="item-dot" style="background:${col}"></div>
+        <div class="item-info">
+          <div class="item-name">${c.desc||'(sin descripción)'}${c.devueltoKg?`<span class="devuelto-badge">↩ ${fmt(c.devueltoKg)} kg devueltos</span>`:''}</div>
+          <div class="item-meta">${c.operador||'Sin operador'} · bruto ${fmt(c.kg)} kg</div>
+        </div>
+        <div class="item-kg" style="color:${col}">${fmt(neto)} kg</div>
+        <div class="item-actions">
+          <button class="btn btn-xs btn-warn" onclick="abrirModalDevol(${i})" title="Devolución">↩</button>
+          <button class="btn btn-xs btn-danger" onclick="elimCarga(${i})">✕</button>
+        </div>
+      </div>`;
+    }).join('');
+  // Pax
+  const pc=document.getElementById('dp-items-pax');
+  pc.innerHTML=v.pasajeros.length===0?'<div class="empty-state" style="padding:1.5rem"><div class="empty-icon">👤</div>Sin pasajeros aún</div>':
+    v.pasajeros.map((p,i)=>{
+      const col=opColor(p.empresa);
+      return `<div class="item-row">
+        <div class="item-dot" style="background:${col}"></div>
+        <div class="item-info">
+          <div class="item-name">${p.nombre}</div>
+          <div class="item-meta">${p.empresa||'—'}</div>
+        </div>
+        <div class="item-kg" style="color:${col}">${fmt(p.kg)} kg</div>
+        <button class="btn btn-xs btn-danger" onclick="elimPax(${i})">✕</button>
+      </div>`;
+    }).join('');
+}
+
+function initFilasCarga(){ document.getElementById('multi-carga-rows').innerHTML=''; addFilaCarga(); }
+function initFilasPax()  { document.getElementById('multi-pax-rows').innerHTML='';   addFilaPax();  }
+
+function addFilaCarga(){
+  const cfg=loadCfg();
+  const cont=document.getElementById('multi-carga-rows');
+  const uid='c'+Date.now()+Math.random().toString(36).slice(2,4);
+  const div=document.createElement('div');
+  div.className='multi-item-row'; div.id=uid;
+  div.style.gridTemplateColumns='110px 1fr 65px 22px';
+  div.innerHTML=`
+    ${buildSelectHTML('op-'+uid,cfg.opsCarga,cfg.opsCarga[0],'height:26px;font-size:12px;padding:0 5px')}
+    <input type="text" id="desc-${uid}" placeholder="Descripción (opcional)" style="height:26px;font-size:12px">
+    <input type="number" id="kg-${uid}" placeholder="Kg" min="0" step="0.1" style="height:26px;font-size:12px;padding:0 5px">
+    <button class="rm-btn" onclick="this.closest('.multi-item-row').remove()">✕</button>`;
+  cont.appendChild(div); cont.scrollTop=cont.scrollHeight;
+}
+
+function addFilaPax(){
+  const cfg=loadCfg();
+  const cont=document.getElementById('multi-pax-rows');
+  const uid='p'+Date.now()+Math.random().toString(36).slice(2,4);
+  const div=document.createElement('div');
+  div.className='multi-item-row'; div.id=uid;
+  div.style.gridTemplateColumns='100px 1fr 65px 22px';
+  div.innerHTML=`
+    ${buildSelectHTML('emp-'+uid,cfg.opsPax,cfg.opsPax[0],'height:26px;font-size:12px;padding:0 5px')}
+    <input type="text" id="nombre-${uid}" placeholder="Nombre pasajero" style="height:26px;font-size:12px">
+    <input type="number" id="kgp-${uid}" placeholder="Kg" min="0" step="0.1" style="height:26px;font-size:12px;padding:0 5px">
+    <button class="rm-btn" onclick="this.closest('.multi-item-row').remove()">✕</button>`;
+  cont.appendChild(div); cont.scrollTop=cont.scrollHeight;
+}
+
+function guardarCarga(){
+  if(!currentVueloId)return;
+  const v=getVuelo(currentVueloId);
+  let n=0;
+  document.querySelectorAll('#multi-carga-rows .multi-item-row').forEach(row=>{
+    const uid=row.id;
+    const op=document.getElementById('op-'+uid)?.value||'';
+    const desc=document.getElementById('desc-'+uid)?.value.trim()||'';
+    const kg=parseFloat(document.getElementById('kg-'+uid)?.value);
+    if(!isNaN(kg)&&kg>0){ v.cargas.push({operador:op,desc,kg,devueltoKg:0}); n++; }
+  });
+  if(n===0){alert('Ninguna fila tiene peso válido.');return;}
+  saveVuelo(v); renderPanel(); renderLista(); initFilasCarga();
+}
+
+function guardarPax(){
+  if(!currentVueloId)return;
+  const v=getVuelo(currentVueloId);
+  let n=0;
+  document.querySelectorAll('#multi-pax-rows .multi-item-row').forEach(row=>{
+    const uid=row.id;
+    const empresa=document.getElementById('emp-'+uid)?.value||'';
+    const nombre=document.getElementById('nombre-'+uid)?.value.trim();
+    const kg=parseFloat(document.getElementById('kgp-'+uid)?.value);
+    if(nombre&&!isNaN(kg)&&kg>0){ v.pasajeros.push({empresa,nombre,kg}); n++; }
+  });
+  if(n===0){alert('Ninguna fila tiene nombre y peso válido.');return;}
+  saveVuelo(v); renderPanel(); renderLista(); initFilasPax();
+}
+
+function elimCarga(idx){ if(!confirm('¿Eliminar este ítem?'))return; const v=getVuelo(currentVueloId); v.cargas.splice(idx,1); saveVuelo(v); renderPanel(); renderLista(); }
+function elimPax(idx){ if(!confirm('¿Eliminar este pasajero?'))return; const v=getVuelo(currentVueloId); v.pasajeros.splice(idx,1); saveVuelo(v); renderPanel(); renderLista(); }
+function eliminarVueloActivo(){ if(!confirm('¿Eliminar este vuelo y todos sus datos?'))return; let db=loadVuelos(); db=db.filter(v=>v.id!==currentVueloId); saveVuelosWithDelete(db); cerrarPanel(); updateDbInfo(); }
+
+// DEVOLUCIÓN
+let devolIdx=null;
+function abrirModalDevol(idx){
+  const v=getVuelo(currentVueloId); if(!v)return;
+  devolIdx=idx;
+  const sel=document.getElementById('devol-sel');
+  sel.innerHTML=v.cargas.map((c,i)=>`<option value="${i}" ${i===idx?'selected':''}>${c.desc||'(sin desc.)'} — ${fmt(c.kg)} kg bruto</option>`).join('');
+  actualizarDevol();
+  document.getElementById('devol-kg').value='';
+  document.getElementById('devol-preview').style.display='none';
+  document.getElementById('modal-devol').classList.add('open');
+}
+function actualizarDevol(){ devolIdx=parseInt(document.getElementById('devol-sel').value); const v=getVuelo(currentVueloId); if(v)document.getElementById('devol-bruto').value=fmt(v.cargas[devolIdx]?.kg||0); }
+function previewDevol(){
+  const v=getVuelo(currentVueloId); if(!v)return;
+  const c=v.cargas[devolIdx]; if(!c)return;
+  const kd=parseFloat(document.getElementById('devol-kg').value)||0;
+  const prev=document.getElementById('devol-preview');
+  if(kd>0){prev.style.display='block';prev.textContent=`Neto restante: ${fmt(Math.max(0,c.kg-(c.devueltoKg||0)-kd))} kg`;}
+  else prev.style.display='none';
+}
+function aplicarDevolucion(){
+  const v=getVuelo(currentVueloId); if(!v)return;
+  const kd=parseFloat(document.getElementById('devol-kg').value);
+  if(isNaN(kd)||kd<=0){alert('Ingresa los kilos devueltos');return;}
+  const c=v.cargas[devolIdx];
+  if(kd>c.kg-(c.devueltoKg||0)){alert('No puedes devolver más kg de los enviados');return;}
+  c.devueltoKg=(c.devueltoKg||0)+kd;
+  saveVuelo(v); cerrarModal('modal-devol'); renderPanel(); renderLista();
+}
+
+// ══════════════════════════════════════════
+// RESERVAS
+// ══════════════════════════════════════════
+function updatePaxFields(){
+  const cant=parseInt(document.getElementById('res-cant')?.value)||1;
+  const cont=document.getElementById('res-nombres-container');
+  if(!cont)return;
+  if(cant<=1){ cont.innerHTML='<div class="fg"><label>Nombre pasajero</label><input type="text" id="pax-nombre-0" placeholder="Nombre completo" style="max-width:300px"></div>'; return; }
+  cont.innerHTML=`<div style="font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:.07em;text-transform:uppercase;color:var(--text3);margin-bottom:8px">Nombres de los ${cant} pasajeros</div>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+    ${Array.from({length:cant},(_,i)=>`<div class="fg"><label>Pasajero ${i+1}</label><input type="text" id="pax-nombre-${i}" placeholder="Nombre"></div>`).join('')}
+  </div>`;
+}
+
+function crearReserva(){
+  const fecha=document.getElementById('res-fecha').value;
+  const destino=document.getElementById('res-destino').value;
+  const empresa=document.getElementById('res-empresa').value;
+  const asesor=document.getElementById('res-asesor').value;
+  const lugar=document.getElementById('res-lugar').value;
+  const cant=parseInt(document.getElementById('res-cant').value)||1;
+  const tel=document.getElementById('res-tel').value.trim();
+  const valor=parseFloat(document.getElementById('res-valor').value)||0;
+  const obs=document.getElementById('res-obs').value.trim();
+  // collect names
+  const nombres=[];
+  for(let i=0;i<cant;i++){
+    const n=document.getElementById('pax-nombre-'+i)?.value.trim()||'';
+    nombres.push(n);
+  }
+  if(!fecha){alert('Ingresa la fecha del vuelo');return;}
+  const db=loadReservas();
+  db.push({id:Date.now(),fecha,destino,empresa,asesor,lugar,cant,nombres,tel,valor,obs,cancelada:false});
+  saveReservas(db);
+  // reset
+  ['res-tel','res-obs'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('res-valor').value='';
+  document.getElementById('res-cant').value='1';
+  updatePaxFields();
+  renderReservas(); updateDbInfo();
+}
+
+function renderReservas(){
+  const db=loadReservas();
+  const hoy=today();
+  // Only show today and future
+  const activas=db.filter(r=>r.fecha>=hoy);
+  const cont=document.getElementById('lista-reservas');
+  if(activas.length===0){cont.innerHTML='<div class="empty-state"><div class="empty-icon">📋</div>No hay reservas activas desde hoy.</div>';return;}
+  _renderReservasList(cont, activas, hoy);
+}
+
+function renderHistorial(){
+  const db=loadReservas();
+  const hoy=today();
+  const pasadas=db.filter(r=>r.fecha<hoy);
+  const cont=document.getElementById('lista-historial');
+  if(pasadas.length===0){cont.innerHTML='<div class="empty-state"><div class="empty-icon">🗂</div>No hay reservas pasadas.</div>';return;}
+  _renderReservasList(cont, pasadas, hoy, true);
+}
+
+function _renderReservasList(cont, reservas, hoy, descendente=false){
+  let fechas=[...new Set(reservas.map(r=>r.fecha))].sort((a,b)=>a.localeCompare(b));
+  if(descendente) fechas=fechas.reverse();
+  cont.innerHTML='';
+  // col headers
+  const hdr=document.createElement('div');
+  hdr.className='list-hdr';
+  hdr.style.gridTemplateColumns='100px 90px 90px 80px 1fr 90px 70px 75px 90px';
+  hdr.innerHTML='<span>Empresa</span><span>Destino</span><span>Asesor</span><span>Lugar pago</span><span>Pasajero(s)</span><span>Teléfono</span><span>Cant.</span><span>Valor</span><span></span>';
+  cont.appendChild(hdr);
+  fechas.forEach(f=>{
+    const resFecha=reservas.filter(r=>r.fecha===f);
+    const totalActivos=resFecha.filter(r=>!r.cancelada).reduce((s,r)=>s+r.cant,0);
+    const isHoy=f===hoy;
+    const bloque=document.createElement('div'); bloque.className='dia-block';
+    const dh=document.createElement('div'); dh.className='dia-hdr';
+    dh.innerHTML=`<div class="dia-fecha" style="color:${isHoy?'var(--green)':'var(--text)'}">${isHoy?'HOY — ':''}${fmtFLargo(f)}</div><div class="dia-total">${totalActivos} pasajero${totalActivos!==1?'s':''} activo${totalActivos!==1?'s':''}</div>`;
+    bloque.appendChild(dh);
+    resFecha.forEach(r=>{
+      const col=opColor(r.empresa);
+      const nombresHtml=r.nombres&&r.nombres.filter(Boolean).length>0
+        ?`<div class="pax-names-list">${r.nombres.filter(Boolean).map(n=>`<span class="pax-name-tag">${n}</span>`).join('')}</div>`
+        :(r.nombre?`<span class="pax-name-tag">${r.nombre}</span>`:'');
+      const row=document.createElement('div');
+      row.className='data-row';
+      if(r.cancelada)row.style.opacity='.4';
+      row.style.gridTemplateColumns='100px 90px 90px 80px 1fr 90px 70px 75px 90px';
+      row.innerHTML=`
+        <div><span class="op-pill" style="color:${col};background:${col}18">${r.empresa}</span></div>
+        <div style="font-size:12px;color:var(--text2)">${r.destino||'—'}</div>
+        <div style="font-size:12px;color:var(--text2)">${r.asesor||'—'}</div>
+        <div style="font-size:11px;color:var(--text3)">${r.lugar||'—'}</div>
+        <div style="${r.cancelada?'text-decoration:line-through;color:var(--text3)':''}">
+          ${nombresHtml}
+          ${r.obs?`<div style="font-size:10px;color:var(--text3);margin-top:2px">${r.obs}</div>`:''}
+        </div>
+        <div style="font-size:12px;color:var(--text2)">${r.tel||'—'}</div>
+        <div style="text-align:center">${r.cancelada?`<span class="badge-cancel">Cancelada</span>`:`<span style="font-family:var(--mono);font-size:15px;font-weight:600;color:var(--green)">${r.cant}</span>`}</div>
+        <div style="font-family:var(--mono);font-size:11px;color:var(--text2)">${r.valor?fmtMoney(r.valor):'—'}</div>
+        <div style="display:flex;gap:4px;justify-content:flex-end">
+          <button class="btn btn-xs btn-ghost" onclick="editarReserva(${r.id})" title="Editar">✎</button>
+          ${r.cancelada
+            ?`<button class="btn btn-xs" style="color:var(--green);border-color:var(--green-light)" onclick="toggleCancelada(${r.id})">↩</button>`
+            :`<button class="btn btn-xs btn-warn" onclick="toggleCancelada(${r.id})" title="Cancelar">✕</button>`}
+          <button class="btn btn-xs btn-danger" onclick="eliminarReserva(${r.id})" title="Eliminar">🗑</button>
+        </div>`;
+      bloque.appendChild(row);
+    });
+    cont.appendChild(bloque);
+  });
+}
+
+function toggleCancelada(id){ const db=loadReservas(); const r=db.find(x=>x.id===id); if(r){r.cancelada=!r.cancelada;saveReservas(db);renderReservas();} }
+function eliminarReserva(id){ if(!confirm('¿Eliminar esta reserva?'))return; saveReservasWithDelete(loadReservas().filter(r=>r.id!==id)); renderReservas(); updateDbInfo(); }
+
+function editarReserva(id){
+  const r=loadReservas().find(x=>x.id===id); if(!r)return;
+  document.getElementById('edit-res-id').value=id;
+  document.getElementById('edit-res-destino').value=r.destino||'';
+  document.getElementById('edit-res-empresa').value=r.empresa||'';
+  document.getElementById('edit-res-asesor').value=r.asesor||'';
+  document.getElementById('edit-res-lugar').value=r.lugar||'';
+  document.getElementById('edit-res-tel').value=r.tel||'';
+  document.getElementById('edit-res-valor').value=r.valor||'';
+  document.getElementById('edit-res-obs').value=r.obs||'';
+  // nombres
+  const cant=r.cant||1;
+  const nombres=r.nombres||[r.nombre||''];
+  const nc=document.getElementById('edit-res-nombres-container');
+  nc.innerHTML=`<div style="font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:.07em;text-transform:uppercase;color:var(--text3);margin-bottom:8px">Pasajeros (${cant})</div>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+    ${Array.from({length:cant},(_,i)=>`<div class="fg"><label>Pasajero ${i+1}</label><input type="text" id="edit-pax-${i}" value="${nombres[i]||''}" placeholder="Nombre"></div>`).join('')}
+  </div>`;
+  document.getElementById('edit-res-cant-val').textContent=cant;
+  document.getElementById('modal-res').classList.add('open');
+}
+
+function guardarEditReserva(){
+  const id=parseInt(document.getElementById('edit-res-id').value);
+  const db=loadReservas(); const r=db.find(x=>x.id===id); if(!r)return;
+  r.destino=document.getElementById('edit-res-destino').value;
+  r.empresa=document.getElementById('edit-res-empresa').value;
+  r.asesor=document.getElementById('edit-res-asesor').value;
+  r.lugar=document.getElementById('edit-res-lugar').value;
+  r.tel=document.getElementById('edit-res-tel').value.trim();
+  r.valor=parseFloat(document.getElementById('edit-res-valor').value)||0;
+  r.obs=document.getElementById('edit-res-obs').value.trim();
+  const nombres=[];
+  for(let i=0;i<r.cant;i++) nombres.push(document.getElementById('edit-pax-'+i)?.value.trim()||'');
+  r.nombres=nombres;
+  saveReservas(db); cerrarModal('modal-res'); renderReservas();
+}
+
+// ══════════════════════════════════════════
+// PAGOS ABC / TASAS
+// ══════════════════════════════════════════
+function generarPagos(){
+  const desde=document.getElementById('p-desde').value;
+  const hasta=document.getElementById('p-hasta').value;
+  const hkFil=document.getElementById('p-hk').value;
+  const despFil=document.getElementById('p-desp').value;
+  if(!desde||!hasta){alert('Selecciona rango de fechas');return;}
+  let vuelos=loadVuelos().filter(v=>v.fecha>=desde&&v.fecha<=hasta);
+  if(hkFil) vuelos=vuelos.filter(v=>v.hk===hkFil);
+  if(despFil) vuelos=vuelos.filter(v=>v.despacha===despFil);
+  const cont=document.getElementById('pagos-out');
+  if(vuelos.length===0){cont.innerHTML='<div class="empty-state"><div class="empty-icon">💰</div>No hay vuelos para ese filtro.</div>';return;}
+
+  const totalAbc=vuelos.reduce((s,v)=>s+abcKg(v),0);
+  const totalTasas=vuelos.reduce((s,v)=>s+v.pasajeros.length,0);
+  const totalPagoAbc=totalAbc*PRECIO_ABC;
+  const totalPagoTasas=totalTasas*PRECIO_TASA;
+
+  cont.innerHTML=`
+  <div class="metrics m4" style="margin-bottom:18px">
+    <div class="metric info"><div class="metric-lbl">Vuelos</div><div class="metric-val">${vuelos.length}</div></div>
+    <div class="metric danger"><div class="metric-lbl">Total ABC</div><div class="metric-val">${fmt(totalAbc)}<span class="metric-unit">kg</span></div></div>
+    <div class="metric warn"><div class="metric-lbl">Total tasas</div><div class="metric-val">${totalTasas}<span class="metric-unit">pax</span></div></div>
+    <div class="metric green"><div class="metric-lbl">Total a pagar</div><div class="metric-val" style="font-size:18px">${fmtMoney(totalPagoAbc+totalPagoTasas)}</div></div>
+  </div>
+  <div class="card">
+    <div class="card-head"><div class="card-title">Detalle por vuelo</div><div style="font-size:12px;color:var(--text3)">${desde} → ${hasta}${hkFil?' · '+hkFil:''}${despFil?' · '+despFil:''}</div></div>
+    <div style="overflow-x:auto"><table class="tbl">
+      <thead><tr>
+        <th>Fecha</th><th>HK</th><th>Despachador</th><th>Límite kg</th>
+        <th>ABC (kg)</th><th>Valor ABC</th>
+        <th>Tasas (pax)</th><th>Valor tasas</th>
+      </tr></thead>
+      <tbody>
+        ${vuelos.map(v=>{
+          const abc=abcKg(v); const npax=v.pasajeros.length;
+          const pagoAbc=abc*PRECIO_ABC; const pagoTasas=npax*PRECIO_TASA;
+          return `<tr>
+            <td class="mono" style="font-size:11px">${new Date(v.fecha+'T12:00:00').toLocaleDateString('es-CO',{day:'numeric',month:'short'})}</td>
+            <td class="mono" style="color:var(--green);font-weight:500">${v.hk}</td>
+            <td style="color:var(--text2);font-size:12px">${v.despacha||'—'}</td>
+            <td class="mono">${v.kilaje?fmt(v.kilaje)+' kg':'—'}</td>
+            <td class="mono" style="color:${abc>0?'var(--danger)':'var(--text3)'};font-weight:${abc>0?600:400}">${abc>0?fmt(abc)+' kg':'—'}</td>
+            <td class="mono" style="color:${abc>0?'var(--danger)':'var(--text3)'}">${abc>0?fmtMoney(pagoAbc):'—'}</td>
+            <td class="mono" style="text-align:center;color:var(--warn)">${npax}</td>
+            <td class="mono" style="color:var(--warn)">${fmtMoney(pagoTasas)}</td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+      <tfoot><tr>
+        <td colspan="4">Totales</td>
+        <td class="mono" style="color:var(--danger)">${fmt(totalAbc)} kg</td>
+        <td class="mono" style="color:var(--danger)">${fmtMoney(totalPagoAbc)}</td>
+        <td class="mono" style="color:var(--warn);text-align:center">${totalTasas}</td>
+        <td class="mono" style="color:var(--warn)">${fmtMoney(totalPagoTasas)}</td>
+      </tr></tfoot>
+    </table></div>
+  </div>`;
+}
+
+// ══════════════════════════════════════════
+// LIBRO DE PAGOS (ABC/TASAS)
+// ══════════════════════════════════════════
+
+function switchPagosTab(tab){
+  document.getElementById('tab-resumen').style.display=tab==='resumen'?'block':'none';
+  document.getElementById('tab-libro').style.display=tab==='libro'?'block':'none';
+  document.getElementById('tab-resumen-btn').style.cssText=tab==='resumen'?'border-bottom:2px solid var(--green);border-radius:0;color:var(--green);font-weight:600':'border-bottom:2px solid transparent;border-radius:0';
+  document.getElementById('tab-libro-btn').style.cssText=tab==='libro'?'border-bottom:2px solid var(--green);border-radius:0;color:var(--green);font-weight:600':'border-bottom:2px solid transparent;border-radius:0';
+  if(tab==='libro'){ renderLibro(); populateAllSelects(); }
+}
+
+function switchLibroSub(sub){
+  document.getElementById('libro-sub-pago').style.display=sub==='pago'?'block':'none';
+  document.getElementById('libro-sub-deuda').style.display=sub==='deuda'?'block':'none';
+  // Historial de pagos solo se muestra en sub-pago
+  const hist=document.getElementById('libro-historial-wrap'); if(hist) hist.style.display=sub==='pago'?'block':'none';
+  const saldos=document.getElementById('libro-saldos'); if(saldos) saldos.style.display=sub==='pago'?'block':'none';
+  document.getElementById('libro-sub1-btn').style.cssText=sub==='pago'?'border-bottom:2px solid var(--green);border-radius:0;color:var(--green);font-weight:600;font-size:12px':'border-bottom:2px solid transparent;border-radius:0;font-size:12px';
+  document.getElementById('libro-sub2-btn').style.cssText=sub==='deuda'?'border-bottom:2px solid var(--green);border-radius:0;color:var(--green);font-weight:600;font-size:12px':'border-bottom:2px solid transparent;border-radius:0;font-size:12px';
+  if(sub==='deuda'){ renderLDTable(); buildSelect('ld-desp',loadCfg().desps,''); }
+  if(sub==='pago') renderLibro();
+}
+
+function calcSaldoDesp(){
+  const vuelos=loadVuelos(); const pagos=loadPagos(); const deudasAnt=loadDeudasAnt(); const cfg=loadCfg();
+  const saldo={};
+  cfg.desps.forEach(d=>saldo[d]={abcTotal:0,tasasTotal:0,abcPagado:0,tasasPagado:0});
+  vuelos.forEach(v=>{ const d=v.despacha; if(!d)return; if(!saldo[d])saldo[d]={abcTotal:0,tasasTotal:0,abcPagado:0,tasasPagado:0}; saldo[d].abcTotal+=abcKg(v); saldo[d].tasasTotal+=v.pasajeros.length; });
+  deudasAnt.forEach(da=>{ const d=da.desp; if(!saldo[d])saldo[d]={abcTotal:0,tasasTotal:0,abcPagado:0,tasasPagado:0}; saldo[d].abcTotal+=da.abc||0; saldo[d].tasasTotal+=da.tasas||0; });
+  pagos.forEach(p=>{ const d=p.desp; if(!saldo[d])saldo[d]={abcTotal:0,tasasTotal:0,abcPagado:0,tasasPagado:0}; saldo[d].abcPagado+=p.abc||0; saldo[d].tasasPagado+=p.tasas||0; });
+  return saldo;
+}
+
+function registrarPago(){
+  const fecha=document.getElementById('lp-fecha').value;
+  const desp=document.getElementById('lp-desp').value;
+  const abc=parseFloat(document.getElementById('lp-abc').value)||0;
+  const tasas=parseInt(document.getElementById('lp-tasas').value)||0;
+  const obs=document.getElementById('lp-obs').value.trim();
+  if(!fecha||!desp){alert('Selecciona fecha y despachador');return;}
+  if(abc===0&&tasas===0){alert('Ingresa al menos un valor de ABC o tasas pagadas');return;}
+  const saldo=calcSaldoDesp();
+  const s=saldo[desp]||{abcTotal:0,tasasTotal:0,abcPagado:0,tasasPagado:0};
+  const pendAbc=Math.max(0,s.abcTotal-s.abcPagado);
+  const pendTasas=Math.max(0,s.tasasTotal-s.tasasPagado);
+  if(abc>pendAbc+0.001){ alert(`No puedes pagar más ABC del que debes.\nPendiente: ${fmt(pendAbc)} kg\nIntentaste: ${fmt(abc)} kg`); return; }
+  if(tasas>pendTasas){ alert(`No puedes pagar más tasas de las que debes.\nPendientes: ${pendTasas}\nIntentaste: ${tasas}`); return; }
+  const db=loadPagos(); db.push({id:Date.now(),fecha,desp,abc,tasas,obs}); savePagos(db);
+  ['lp-abc','lp-tasas','lp-obs'].forEach(id=>document.getElementById(id).value='');
+  renderLibro();
+}
+
+function registrarDeudaAnterior(){
+  const desp=document.getElementById('ld-desp').value;
+  const abc=parseFloat(document.getElementById('ld-abc').value)||0;
+  const tasas=parseInt(document.getElementById('ld-tasas').value)||0;
+  const obs=document.getElementById('ld-obs').value.trim();
+  if(!desp){alert('Selecciona el despachador');return;}
+  if(abc===0&&tasas===0){alert('Ingresa al menos kg ABC o tasas');return;}
+  const db=loadDeudasAnt(); db.push({id:Date.now(),desp,abc,tasas,obs}); saveDeudasAnt(db);
+  ['ld-abc','ld-tasas','ld-obs'].forEach(id=>document.getElementById(id).value='');
+  renderLDTable(); renderLibro();
+}
+
+function eliminarDeudaAnt(id){ if(!confirm('¿Eliminar esta deuda?'))return; saveDeudasAntWithDelete(loadDeudasAnt().filter(d=>d.id!==id)); renderLDTable(); renderLibro(); }
+
+function renderLDTable(){
+  const db=loadDeudasAnt(); const tbody=document.getElementById('ld-tbody'); if(!tbody)return;
+  tbody.innerHTML=db.length===0?'<tr><td colspan="7" style="text-align:center;color:var(--text3);padding:16px">Sin deudas anteriores.</td></tr>':
+    db.map(d=>`<tr><td style="font-weight:500;color:${opColor(d.desp)}">${d.desp}</td><td class="mono" style="color:var(--danger)">${d.abc>0?fmt(d.abc)+' kg':'—'}</td><td class="mono" style="color:var(--danger)">${d.abc>0?fmtMoney(d.abc*PRECIO_ABC):'—'}</td><td class="mono" style="color:var(--warn)">${d.tasas>0?d.tasas:'—'}</td><td class="mono" style="color:var(--warn)">${d.tasas>0?fmtMoney(d.tasas*PRECIO_TASA):'—'}</td><td style="font-size:12px;color:var(--text3)">${d.obs||'—'}</td><td><button class="btn btn-xs btn-danger" onclick="eliminarDeudaAnt(${d.id})">🗑</button></td></tr>`).join('');
+}
+
+function eliminarPago(id){ if(!confirm('¿Eliminar este pago?'))return; savePagosWithDelete(loadPagos().filter(p=>p.id!==id)); renderLibro(); }
+
+function renderLibro(){
+  const pagos=loadPagos(); const saldo=calcSaldoDesp(); const cfg=loadCfg();
+  const despsConAct=cfg.desps.filter(d=>{ const s=saldo[d]; return s&&(s.abcTotal>0||s.tasasTotal>0); });
+  const saldosCont=document.getElementById('libro-saldos'); if(!saldosCont)return;
+  saldosCont.innerHTML=despsConAct.length===0?'<div class="empty-state" style="padding:1rem"><div class="empty-icon">✅</div>Sin deuda registrada. Registra deudas anteriores o vuelos con despachador y kilaje.</div>':
+    `<div style="display:grid;grid-template-columns:repeat(${Math.min(despsConAct.length,3)},1fr);gap:12px;margin-bottom:18px">${despsConAct.map(d=>{
+      const s=saldo[d]; const pendAbc=Math.max(0,s.abcTotal-s.abcPagado); const pendTasas=Math.max(0,s.tasasTotal-s.tasasPagado); const col=opColor(d);
+      return `<div class="card" style="border-left:3px solid ${col}"><div class="card-head" style="padding:10px 14px"><div class="card-title" style="color:${col}">${d}</div></div>
+        <div class="card-body" style="padding:12px 14px">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+            <div style="text-align:center;padding:8px;background:var(--danger-bg);border-radius:var(--radius)"><div style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:2px">ABC PENDIENTE</div><div style="font-family:var(--mono);font-size:18px;font-weight:600;color:${pendAbc>0?'var(--danger)':'var(--green)'}">${fmt(pendAbc)} kg</div><div style="font-size:11px;color:${pendAbc>0?'var(--danger)':'var(--green)'}">${fmtMoney(pendAbc*PRECIO_ABC)}</div></div>
+            <div style="text-align:center;padding:8px;background:var(--warn-bg);border-radius:var(--radius)"><div style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:2px">TASAS PENDIENTES</div><div style="font-family:var(--mono);font-size:18px;font-weight:600;color:${pendTasas>0?'var(--warn)':'var(--green)'}">${pendTasas}</div><div style="font-size:11px;color:${pendTasas>0?'var(--warn)':'var(--green)'}">${fmtMoney(pendTasas*PRECIO_TASA)}</div></div>
+          </div>
+          <div style="font-size:11px;color:var(--text3)">Total: <strong style="font-family:var(--mono);color:var(--text)">${fmtMoney((pendAbc*PRECIO_ABC)+(pendTasas*PRECIO_TASA))}</strong> · Pagado: ${fmt(s.abcPagado)}kg / ${s.tasasPagado} tasas</div>
+        </div></div>`;
+    }).join('')}</div>`;
+  const tbody=document.getElementById('libro-tbody'); if(!tbody)return;
+  tbody.innerHTML=pagos.length===0?'<tr><td colspan="8" style="text-align:center;color:var(--text3);padding:20px">No hay pagos registrados.</td></tr>':
+    [...pagos].sort((a,b)=>b.fecha.localeCompare(a.fecha)).map(p=>`<tr><td class="mono" style="font-size:11px">${new Date(p.fecha+'T12:00:00').toLocaleDateString('es-CO',{day:'numeric',month:'short',year:'numeric'})}</td><td style="font-weight:500;color:${opColor(p.desp)}">${p.desp}</td><td class="mono" style="color:var(--danger)">${p.abc>0?fmt(p.abc)+' kg':'—'}</td><td class="mono" style="color:var(--danger)">${p.abc>0?fmtMoney(p.abc*PRECIO_ABC):'—'}</td><td class="mono" style="color:var(--warn);text-align:center">${p.tasas>0?p.tasas:'—'}</td><td class="mono" style="color:var(--warn)">${p.tasas>0?fmtMoney(p.tasas*PRECIO_TASA):'—'}</td><td style="font-size:12px;color:var(--text3)">${p.obs||'—'}</td><td><button class="btn btn-xs btn-danger" onclick="eliminarPago(${p.id})">🗑</button></td></tr>`).join('');
+}
+
+// ══════════════════════════════════════════
+// PAGOS DE VUELOS (DUEÑOS)
+// ══════════════════════════════════════════
+
+function populateVPSelects(){ const cfg=loadCfg(); const hks=cfg.aviones.map(a=>a.hk); buildSelect('vp-hk',hks,hks[0]||''); buildSelect('vpd-hk',hks,hks[0]||''); }
+
+function calcSaldoVuelos(){
+  const vuelos=loadVuelos(); const pagos=loadPagosVuelos(); const deudasAnt=loadDeudasVuelos(); const cfg=loadCfg();
+  const saldo={};
+  cfg.aviones.forEach(a=>{ saldo[a.hk]={dueno:a.dueno||'—',valorPorVuelo:a.valor||0,nVuelos:0,deudaTotal:0,pagado:0}; });
+  vuelos.forEach(v=>{ if(!saldo[v.hk])return; saldo[v.hk].nVuelos++; saldo[v.hk].deudaTotal+=saldo[v.hk].valorPorVuelo; });
+  deudasAnt.forEach(d=>{ if(!saldo[d.hk])return; saldo[d.hk].deudaTotal+=d.monto||0; });
+  pagos.forEach(p=>{ if(!saldo[p.hk])return; saldo[p.hk].pagado+=p.monto||0; });
+  return saldo;
+}
+
+function switchVPTab(tab){
+  ['saldo','pagos','deuda'].forEach(t=>{ document.getElementById('vp-tab-'+t).style.display=t===tab?'block':'none'; });
+  const map={saldo:'vp-tab1-btn',pagos:'vp-tab2-btn',deuda:'vp-tab3-btn'};
+  Object.keys(map).forEach(t=>{ document.getElementById(map[t]).style.cssText=t===tab?'border-bottom:2px solid var(--green);border-radius:0;color:var(--green);font-weight:600':'border-bottom:2px solid transparent;border-radius:0'; });
+  if(tab==='saldo') renderVPSaldo();
+  if(tab==='pagos'){ renderVPPagos(); populateVPSelects(); }
+  if(tab==='deuda'){ renderVPDeudas(); populateVPSelects(); }
+}
+
+function registrarPagoVuelo(){
+  const fecha=document.getElementById('vp-fecha').value; const hk=document.getElementById('vp-hk').value;
+  const monto=parseFloat(document.getElementById('vp-monto').value)||0; const obs=document.getElementById('vp-obs').value.trim();
+  if(!fecha||!hk){alert('Selecciona fecha y HK');return;} if(monto<=0){alert('Ingresa un monto válido');return;}
+  const saldo=calcSaldoVuelos(); const s=saldo[hk]; const pendiente=s?Math.max(0,s.deudaTotal-s.pagado):0;
+  if(monto>pendiente+0.01){ alert(`No puedes pagar más de lo que debes.\nPendiente: ${fmtMoney(pendiente)}\nIntentaste: ${fmtMoney(monto)}`); return; }
+  const db=loadPagosVuelos(); db.push({id:Date.now(),fecha,hk,monto,obs}); savePagosVuelos(db);
+  ['vp-monto','vp-obs'].forEach(id=>document.getElementById(id).value='');
+  renderVPSaldo(); renderVPPagos();
+}
+
+function registrarDeudaAnteriorVuelo(){
+  const hk=document.getElementById('vpd-hk').value; const monto=parseFloat(document.getElementById('vpd-monto').value)||0; const obs=document.getElementById('vpd-obs').value.trim();
+  if(!hk){alert('Selecciona el HK');return;} if(monto<=0){alert('Ingresa un monto válido');return;}
+  const db=loadDeudasVuelos(); db.push({id:Date.now(),hk,monto,obs}); saveDeudasVuelos(db);
+  ['vpd-monto','vpd-obs'].forEach(id=>document.getElementById(id).value='');
+  renderVPSaldo(); renderVPDeudas();
+}
+
+function eliminarPagoVuelo(id){ if(!confirm('¿Eliminar?'))return; savePagosVuelosWithDelete(loadPagosVuelos().filter(p=>p.id!==id)); renderVPSaldo(); renderVPPagos(); }
+function eliminarDeudaVuelo(id){ if(!confirm('¿Eliminar?'))return; saveDeudasVuelosWithDelete(loadDeudasVuelos().filter(d=>d.id!==id)); renderVPSaldo(); renderVPDeudas(); }
+
+function renderVPSaldo(){
+  const saldo=calcSaldoVuelos(); const cfg=loadCfg(); const cont=document.getElementById('vp-saldos-cont'); if(!cont)return;
+  if(cfg.aviones.length===0){ cont.innerHTML='<div class="empty-state"><div class="empty-icon">💵</div>Agrega aviones en Configuración primero.</div>'; return; }
+  // Group by owner
+  const byDueno={};
+  cfg.aviones.forEach(a=>{ const d=a.dueno||'Sin dueño asignado'; if(!byDueno[d])byDueno[d]=[]; byDueno[d].push(a); });
+  cont.innerHTML=Object.keys(byDueno).map(dueno=>{
+    const aviones=byDueno[dueno]; const col=opColor(dueno);
+    const cards=aviones.map(a=>{
+      const s=saldo[a.hk]||{nVuelos:0,deudaTotal:0,pagado:0}; const pendiente=Math.max(0,s.deudaTotal-s.pagado); const aCol=opColor(a.hk);
+      return `<div class="card" style="border-left:3px solid ${aCol}">
+        <div class="card-head" style="padding:10px 14px"><div><div class="card-title" style="color:${aCol}">${a.hk}</div><div style="font-size:11px;color:var(--text3);margin-top:2px">${s.nVuelos} vuelo(s) · ${a.empresa||'—'}</div></div></div>
+        <div class="card-body" style="padding:12px 14px">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+            <div style="text-align:center;padding:8px;background:var(--bg3);border-radius:var(--radius)"><div style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:2px">DEUDA TOTAL</div><div style="font-family:var(--mono);font-size:15px;font-weight:600">${fmtMoney(s.deudaTotal)}</div></div>
+            <div style="text-align:center;padding:8px;background:${pendiente>0?'var(--warn-bg)':'#f0faf4'};border-radius:var(--radius)"><div style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:2px">PENDIENTE</div><div style="font-family:var(--mono);font-size:15px;font-weight:600;color:${pendiente>0?'var(--warn)':'var(--green)'}">${fmtMoney(pendiente)}</div></div>
+          </div>
+          <div style="font-size:11px;color:var(--text3)">Pagado: <strong style="font-family:var(--mono);color:var(--green)">${fmtMoney(s.pagado)}</strong> · Valor/vuelo: ${a.valor?fmtMoney(a.valor):'No definido'}</div>
+        </div>
+      </div>`;
+    }).join('');
+    return `<div style="margin-bottom:24px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;padding-bottom:8px;border-bottom:2px solid ${col}30">
+        <span style="font-family:var(--display);font-size:17px;font-weight:700;color:${col}">${dueno}</span>
+        <span style="font-size:12px;color:var(--text3);background:var(--bg3);border:1px solid var(--border);border-radius:4px;padding:2px 8px">${aviones.length} avión(es)</span>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(${Math.min(aviones.length,3)},1fr);gap:12px">${cards}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderVPPagos(){
+  const db=loadPagosVuelos(); const saldo=calcSaldoVuelos(); const tbody=document.getElementById('vp-pagos-tbody'); if(!tbody)return;
+  const sorted=[...db].sort((a,b)=>b.fecha.localeCompare(a.fecha));
+  tbody.innerHTML=sorted.length===0?'<tr><td colspan="6" style="text-align:center;color:var(--text3);padding:20px">No hay pagos registrados.</td></tr>':
+    sorted.map(p=>{ const s=saldo[p.hk]||{}; return `<tr><td class="mono" style="font-size:11px">${new Date(p.fecha+'T12:00:00').toLocaleDateString('es-CO',{day:'numeric',month:'short',year:'numeric'})}</td><td class="mono" style="color:var(--green);font-weight:500">${p.hk}</td><td style="font-size:12px;color:var(--text2)">${s.dueno||'—'}</td><td class="mono" style="color:var(--green);font-weight:600">${fmtMoney(p.monto)}</td><td style="font-size:12px;color:var(--text3)">${p.obs||'—'}</td><td><button class="btn btn-xs btn-danger" onclick="eliminarPagoVuelo(${p.id})">🗑</button></td></tr>`}).join('');
+}
+
+function renderVPDeudas(){
+  const db=loadDeudasVuelos(); const cfg=loadCfg(); const tbody=document.getElementById('vp-deudas-tbody'); if(!tbody)return;
+  tbody.innerHTML=db.length===0?'<tr><td colspan="5" style="text-align:center;color:var(--text3);padding:16px">Sin deudas anteriores.</td></tr>':
+    db.map(d=>{ const av=cfg.aviones.find(a=>a.hk===d.hk)||{}; return `<tr><td class="mono" style="color:var(--green);font-weight:500">${d.hk}</td><td style="font-size:13px">${av.dueno||'—'}</td><td class="mono" style="color:var(--warn);font-weight:600">${fmtMoney(d.monto)}</td><td style="font-size:12px;color:var(--text3)">${d.obs||'—'}</td><td><button class="btn btn-xs btn-danger" onclick="eliminarDeudaVuelo(${d.id})">🗑</button></td></tr>`}).join('');
+}
+
+// ══════════════════════════════════════════
+// DASHBOARD / REPORTES
+// ══════════════════════════════════════════
+function renderDashboard(){
+  const vuelos=loadVuelos(); const reservas=loadReservas(); const hoy=today();
+  const cont=document.getElementById('reporte-out'); if(!cont)return;
+  const vHoy=vuelos.filter(v=>v.fecha===hoy);
+  const vMes=vuelos.filter(v=>v.fecha>=hoy.slice(0,7)+'-01'&&v.fecha<=hoy);
+  const tcHoy=vHoy.reduce((s,v)=>s+totalCarga(v),0);
+  const tpHoy=vHoy.reduce((s,v)=>s+totalPax(v),0);
+  const abcHoy=vHoy.reduce((s,v)=>s+abcKg(v),0);
+  const tasasHoy=vHoy.reduce((s,v)=>s+v.pasajeros.length,0);
+  const resHoy=reservas.filter(r=>r.fecha===hoy&&!r.cancelada).reduce((s,r)=>s+r.cant,0);
+  const resPend=reservas.filter(r=>r.fecha>hoy&&!r.cancelada).reduce((s,r)=>s+r.cant,0);
+  const tcMes=vMes.reduce((s,v)=>s+totalCarga(v),0);
+  const abcMes=vMes.reduce((s,v)=>s+abcKg(v),0);
+  const tasasMes=vMes.reduce((s,v)=>s+v.pasajeros.length,0);
+
+  // Carga por operador este mes
+  const roMes={};
+  vMes.forEach(v=>v.cargas.forEach(c=>{ const op=c.operador||'Otro'; roMes[op]=(roMes[op]||0)+(c.kg-(c.devueltoKg||0)); }));
+  const roKeys=Object.keys(roMes).sort((a,b)=>roMes[b]-roMes[a]);
+  const roTot=roKeys.reduce((s,k)=>s+roMes[k],0);
+
+  // Vuelos por HK este mes
+  const vxHK={};
+  vMes.forEach(v=>{ vxHK[v.hk]=(vxHK[v.hk]||0)+1; });
+  const hkKeys=Object.keys(vxHK).sort((a,b)=>vxHK[b]-vxHK[a]);
+
+  // Reservas por empresa este mes
+  const resMes=reservas.filter(r=>r.fecha>=hoy.slice(0,7)+'-01'&&r.fecha<=hoy&&!r.cancelada);
+  const rxEmp={};
+  resMes.forEach(r=>{ rxEmp[r.empresa]=(rxEmp[r.empresa]||0)+r.cant; });
+  const empKeys=Object.keys(rxEmp).sort((a,b)=>rxEmp[b]-rxEmp[a]);
+  const empTot=empKeys.reduce((s,k)=>s+rxEmp[k],0);
+
+  // Reservas por asesor este mes
+  const rxAsesor={};
+  resMes.forEach(r=>{ const a=r.asesor||'Sin asesor'; rxAsesor[a]=(rxAsesor[a]||0)+r.cant; });
+  const asesorKeys=Object.keys(rxAsesor).sort((a,b)=>rxAsesor[b]-rxAsesor[a]);
+  const asesorTot=asesorKeys.reduce((s,k)=>s+rxAsesor[k],0);
+
+  // Saldo despachadores
+  const salDesp=calcSaldoDesp(); const cfg=loadCfg();
+  const despsDeuda=cfg.desps.filter(d=>{ const s=salDesp[d]; return s&&(s.abcTotal>0||s.tasasTotal>0); });
+
+  // Saldo dueños aviones
+  const salVuelos=calcSaldoVuelos();
+  const avionesConDeuda=cfg.aviones.filter(a=>{ const s=salVuelos[a.hk]; return s&&s.deudaTotal>0; });
+
+  // Últimas reservas pendientes (próximos 7 días)
+  const en7=new Date(); en7.setDate(en7.getDate()+7);
+  const en7str=en7.toISOString().split('T')[0];
+  const proximas=reservas.filter(r=>r.fecha>=hoy&&r.fecha<=en7str&&!r.cancelada).sort((a,b)=>a.fecha.localeCompare(b.fecha));
+
+  cont.innerHTML=`
+  <div style="font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:10px">✈ Vuelos — Hoy</div>
+  <div class="metrics m4" style="margin-bottom:20px">
+    <div class="metric green"><div class="metric-lbl">Vuelos hoy</div><div class="metric-val">${vHoy.length}</div></div>
+    <div class="metric info"><div class="metric-lbl">Carga neta</div><div class="metric-val">${fmt(tcHoy)}<span class="metric-unit">kg</span></div></div>
+    <div class="metric"><div class="metric-lbl">Peso pasajeros</div><div class="metric-val">${fmt(tpHoy)}<span class="metric-unit">kg</span></div></div>
+    <div class="metric green"><div class="metric-lbl">Peso total</div><div class="metric-val">${fmt(tcHoy+tpHoy)}<span class="metric-unit">kg</span></div></div>
+  </div>
+
+  <div style="font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:10px">📦 Carga y vuelos — Mes actual</div>
+  <div class="metrics m4" style="margin-bottom:20px">
+    <div class="metric"><div class="metric-lbl">Vuelos del mes</div><div class="metric-val">${vMes.length}</div></div>
+    <div class="metric info"><div class="metric-lbl">Carga neta mes</div><div class="metric-val">${fmt(tcMes)}<span class="metric-unit">kg</span></div></div>
+    <div class="metric danger"><div class="metric-lbl">ABC del mes</div><div class="metric-val">${fmt(abcMes)}<span class="metric-unit">kg</span></div></div>
+    <div class="metric warn"><div class="metric-lbl">Tasas del mes</div><div class="metric-val">${tasasMes}<span class="metric-unit">pax</span></div></div>
+  </div>
+
+  <div style="font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:10px">💰 ABC y Tasas — Hoy</div>
+  <div class="metrics m4" style="margin-bottom:20px">
+    <div class="metric danger"><div class="metric-lbl">ABC hoy</div><div class="metric-val">${fmt(abcHoy)}<span class="metric-unit">kg</span></div></div>
+    <div class="metric danger"><div class="metric-lbl">Valor ABC</div><div class="metric-val" style="font-size:18px">${fmtMoney(abcHoy*PRECIO_ABC)}</div></div>
+    <div class="metric warn"><div class="metric-lbl">Tasas hoy</div><div class="metric-val">${tasasHoy}<span class="metric-unit">pax</span></div></div>
+    <div class="metric warn"><div class="metric-lbl">Valor tasas</div><div class="metric-val" style="font-size:18px">${fmtMoney(tasasHoy*PRECIO_TASA)}</div></div>
+  </div>
+
+  <div style="font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:10px">📋 Reservas</div>
+  <div class="metrics m3" style="margin-bottom:20px">
+    <div class="metric green"><div class="metric-lbl">Pasajeros hoy</div><div class="metric-val">${resHoy}</div></div>
+    <div class="metric"><div class="metric-lbl">Activos próximos</div><div class="metric-val">${resPend}</div></div>
+    <div class="metric"><div class="metric-lbl">Reservas este mes</div><div class="metric-val">${resMes.reduce((s,r)=>s+r.cant,0)}</div></div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+    <div class="card">
+      <div class="card-head"><div class="card-title">Carga por operador — Este mes</div></div>
+      <div class="card-body">
+        ${roKeys.length===0?'<div style="font-size:13px;color:var(--text3)">Sin carga registrada este mes</div>':roKeys.map(k=>{
+          const pct=roTot>0?roMes[k]/roTot*100:0; const col=opColor(k);
+          return `<div class="bar-row"><div class="bar-label" style="width:120px">${k}</div><div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${col}"></div></div><div class="bar-val" style="color:${col}">${fmt(roMes[k])} kg</div><div style="font-family:var(--mono);font-size:10px;color:var(--text3);width:32px;text-align:right">${pct.toFixed(0)}%</div></div>`;
+        }).join('')}
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head"><div class="card-title">Vuelos por avión — Este mes</div></div>
+      <div class="card-body">
+        ${hkKeys.length===0?'<div style="font-size:13px;color:var(--text3)">Sin vuelos este mes</div>':hkKeys.map(k=>{
+          const totHK=hkKeys.reduce((s,h)=>s+vxHK[h],0);
+          const pct=totHK>0?vxHK[k]/totHK*100:0; const col=opColor(k);
+          return `<div class="bar-row"><div class="bar-label" style="width:80px;font-family:var(--mono);font-weight:500;color:${col}">${k}</div><div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${col}"></div></div><div class="bar-val" style="color:${col}">${vxHK[k]} vuelo${vxHK[k]!==1?'s':''}</div><div style="font-family:var(--mono);font-size:10px;color:var(--text3);width:36px;text-align:right">${pct.toFixed(0)}%</div></div>`;
+        }).join('')}
+      </div>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+    <div class="card">
+      <div class="card-head"><div class="card-title">Reservas por empresa — Este mes</div></div>
+      <div class="card-body">
+        ${empKeys.length===0?'<div style="font-size:13px;color:var(--text3)">Sin reservas este mes</div>':empKeys.map(k=>{
+          const pct=empTot>0?rxEmp[k]/empTot*100:0; const col=opColor(k);
+          return `<div class="bar-row"><div class="bar-label" style="width:120px">${k}</div><div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${col}"></div></div><div class="bar-val" style="color:${col}">${rxEmp[k]} pax</div><div style="font-family:var(--mono);font-size:10px;color:var(--text3);width:36px;text-align:right">${pct.toFixed(0)}%</div></div>`;
+        }).join('')}
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head"><div class="card-title">Reservas por asesor — Este mes</div></div>
+      <div class="card-body">
+        ${asesorKeys.length===0?'<div style="font-size:13px;color:var(--text3)">Sin reservas este mes</div>':asesorKeys.map(k=>{
+          const pct=asesorTot>0?rxAsesor[k]/asesorTot*100:0; const col=opColor(k);
+          return `<div class="bar-row"><div class="bar-label" style="width:120px">${k}</div><div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${col}"></div></div><div class="bar-val" style="color:${col}">${rxAsesor[k]} pax</div><div style="font-family:var(--mono);font-size:10px;color:var(--text3);width:36px;text-align:right">${pct.toFixed(0)}%</div></div>`;
+        }).join('')}
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-bottom:16px">
+    <div class="card">
+      <div class="card-head"><div class="card-title">Próximas reservas (7 días)</div></div>
+      <div class="card-body" style="padding:0">
+        ${proximas.length===0?'<div style="font-size:13px;color:var(--text3);padding:12px">Sin reservas próximas</div>':
+          proximas.slice(0,8).map(r=>{
+            const col=opColor(r.empresa);
+            return `<div style="display:flex;align-items:center;gap:10px;padding:8px 14px;border-bottom:1px solid var(--border)">
+              <span style="font-family:var(--mono);font-size:11px;color:var(--text3);width:60px;flex-shrink:0">${new Date(r.fecha+'T12:00:00').toLocaleDateString('es-CO',{day:'numeric',month:'short'})}</span>
+              <span class="op-pill" style="color:${col};background:${col}18;flex-shrink:0">${r.empresa}</span>
+              <span style="flex:1;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.nombres&&r.nombres.filter(Boolean).length?r.nombres.filter(Boolean).join(', '):'—'}</span>
+              <span style="font-family:var(--mono);font-size:13px;font-weight:600;color:var(--green);flex-shrink:0">${r.cant}</span>
+            </div>`;
+          }).join('')}
+      </div>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+    <div class="card">
+      <div class="card-head"><div class="card-title">Saldo despachadores (ABC y Tasas)</div></div>
+      <div class="card-body">
+        ${despsDeuda.length===0?'<div style="font-size:13px;color:var(--text3)">Sin deuda registrada</div>':despsDeuda.map(d=>{
+          const s=salDesp[d]; const pA=Math.max(0,s.abcTotal-s.abcPagado); const pT=Math.max(0,s.tasasTotal-s.tasasPagado); const col=opColor(d);
+          return `<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">
+            <span style="font-weight:600;color:${col}">${d}</span>
+            <div style="display:flex;gap:12px;font-size:12px">
+              <span><span style="color:var(--danger);font-family:var(--mono);font-weight:500">${fmt(pA)} kg</span> <span style="color:var(--text3)">ABC</span></span>
+              <span><span style="color:var(--warn);font-family:var(--mono);font-weight:500">${pT}</span> <span style="color:var(--text3)">tasas</span></span>
+              <span style="color:var(--text3)">= <strong style="color:var(--text);font-family:var(--mono)">${fmtMoney(pA*PRECIO_ABC+pT*PRECIO_TASA)}</strong></span>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head"><div class="card-title">Saldo aviones (Pago a dueños)</div></div>
+      <div class="card-body">
+        ${avionesConDeuda.length===0?'<div style="font-size:13px;color:var(--text3)">Sin aviones con deuda registrada</div>':avionesConDeuda.map(a=>{
+          const s=salVuelos[a.hk]; const pend=Math.max(0,s.deudaTotal-s.pagado); const col=opColor(a.hk);
+          return `<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">
+            <div>
+              <span style="font-family:var(--mono);font-weight:600;color:${col}">${a.hk}</span>
+              <span style="font-size:11px;color:var(--text3);margin-left:8px">${a.dueno||'—'}</span>
+            </div>
+            <span style="font-family:var(--mono);font-weight:600;color:${pend>0?'var(--warn)':'var(--green)'}">${fmtMoney(pend)}</span>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+  </div>`;
+}
+
+// ══════════════════════════════════════════
+// CONFIGURACIÓN
+// ══════════════════════════════════════════
+function renderConfig(){
+  const cfg=loadCfg();
+  // aviones table
+  const tbody=document.getElementById('tbody-aviones');
+  if(cfg.aviones.length===0){ tbody.innerHTML=`<tr><td colspan="8" style="text-align:center;color:var(--text3);padding:20px">No hay aviones registrados. Agrega el primero.</td></tr>`; }
+  else {
+    tbody.innerHTML=cfg.aviones.map(a=>`<tr>
+      <td class="mono" style="color:var(--green);font-weight:500">${a.hk}</td>
+      <td style="font-size:13px">${a.empresa||'—'}</td>
+      <td style="font-size:13px">${a.dueno||'—'}</td>
+      <td class="mono" style="text-align:center">${a.pax||'—'}</td>
+      <td class="mono">${a.kilaje?fmt(a.kilaje)+' kg':'—'}</td>
+      <td class="mono">${a.valor?fmtMoney(a.valor):'—'}</td>
+      <td style="font-size:13px">${a.despacha||'—'}</td>
+      <td style="display:flex;gap:5px">
+        <button class="btn btn-xs btn-info" onclick="abrirModalAvion('${a.hk}')">✎ Editar</button>
+        <button class="btn btn-xs btn-danger" onclick="eliminarAvion('${a.hk}')">✕</button>
+      </td>
+    </tr>`).join('');
+  }
+  // listas simples
+  const listas=[
+    {id:'cfg-duenos-list',key:'duenos'},
+    {id:'cfg-destinos-list',key:'destinos'},
+    {id:'cfg-destinos-res-list',key:'destinosRes'},
+    {id:'cfg-carga-list',key:'opsCarga'},
+    {id:'cfg-pax-list',key:'opsPax'},
+    {id:'cfg-asesores-list',key:'asesores'},
+    {id:'cfg-desps-list',key:'desps'},
+  ];
+  listas.forEach(({id,key})=>{
+    const cont=document.getElementById(id); if(!cont)return;
+    const list=cfg[key]||[];
+    cont.innerHTML=list.length===0?'<div style="font-size:12px;color:var(--text3);padding:6px">Lista vacía</div>':
+      list.map((item,i)=>`<div class="config-item">
+        ${(key==='opsCarga'||key==='opsPax')?`<span class="config-item-dot" style="background:${opColor(item)}"></span>`:''}
+        <span class="config-item-name">${item}</span>
+        <button class="btn btn-xs btn-danger" onclick="removeCfgItem('${key}',${i})">✕</button>
+      </div>`).join('');
+  });
+}
+
+function addCfgItem(key, inputId){
+  const val=document.getElementById(inputId)?.value.trim(); if(!val)return;
+  const cfg=loadCfg();
+  if(!(cfg[key]||[]).includes(val)){ cfg[key]=(cfg[key]||[]); cfg[key].push(val); saveCfg(cfg); }
+  document.getElementById(inputId).value='';
+  renderConfig(); populateAllSelects();
+}
+function removeCfgItem(key,idx){
+  const cfg=loadCfg(); cfg[key].splice(idx,1); saveCfg(cfg); renderConfig(); populateAllSelects();
+}
+
+// AVIONES
+function abrirModalAvion(hk){
+  const cfg=loadCfg();
+  buildSelect('avion-despacha',cfg.desps,'');
+  buildSelect('avion-dueno',cfg.duenos||[],hk?(cfg.aviones.find(x=>x.hk===hk)?.dueno||''):'',false,'— Seleccionar dueño —');
+  if(hk){
+    const a=cfg.aviones.find(x=>x.hk===hk); if(!a)return;
+    document.getElementById('modal-avion-title').textContent='Editar avión — '+hk;
+    document.getElementById('avion-edit-hk').value=hk;
+    document.getElementById('avion-hk').value=a.hk;
+    document.getElementById('avion-hk').readOnly=true;
+    document.getElementById('avion-empresa').value=a.empresa||'';
+    document.getElementById('avion-dueno').value=a.dueno||'';
+    document.getElementById('avion-pax').value=a.pax||'';
+    document.getElementById('avion-kilaje').value=a.kilaje||'';
+    document.getElementById('avion-valor').value=a.valor||'';
+    document.getElementById('avion-despacha').value=a.despacha||'';
+  } else {
+    document.getElementById('modal-avion-title').textContent='Agregar avión';
+    document.getElementById('avion-edit-hk').value='';
+    document.getElementById('avion-hk').value='';
+    document.getElementById('avion-hk').readOnly=false;
+    ['avion-empresa','avion-pax','avion-kilaje','avion-valor'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('avion-despacha').value='';
+  }
+  document.getElementById('modal-avion').classList.add('open');
+}
+
+function guardarAvion(){
+  const hkOrig=document.getElementById('avion-edit-hk').value;
+  const hk=document.getElementById('avion-hk').value.trim().toUpperCase();
+  if(!hk){alert('Ingresa el HK del avión');return;}
+  const cfg=loadCfg();
+  const avion={
+    hk,
+    empresa:document.getElementById('avion-empresa').value.trim(),
+    dueno:document.getElementById('avion-dueno').value,
+    pax:parseInt(document.getElementById('avion-pax').value)||0,
+    kilaje:parseFloat(document.getElementById('avion-kilaje').value)||0,
+    valor:parseFloat(document.getElementById('avion-valor').value)||0,
+    despacha:document.getElementById('avion-despacha').value,
+  };
+  if(hkOrig){
+    const idx=cfg.aviones.findIndex(a=>a.hk===hkOrig);
+    if(idx>=0) cfg.aviones[idx]=avion; else cfg.aviones.push(avion);
+  } else {
+    if(cfg.aviones.some(a=>a.hk===hk)){alert('Ya existe un avión con ese HK');return;}
+    cfg.aviones.push(avion);
+  }
+  saveCfg(cfg); cerrarModal('modal-avion'); renderConfig(); populateAllSelects();
+}
+
+function eliminarAvion(hk){
+  if(!confirm('¿Eliminar el avión '+hk+'?'))return;
+  const cfg=loadCfg(); cfg.aviones=cfg.aviones.filter(a=>a.hk!==hk); saveCfg(cfg); renderConfig(); populateAllSelects();
+}
+
+// ══ MODALES ══
+function cerrarModal(id){ document.getElementById(id).classList.remove('open'); }
+
+// ══════════════════════════════════════════
+// LIBRO DE PAGOS
+// ══════════════════════════════════════════
+function loadPagos(){ try{return JSON.parse(localStorage.getItem('eco_pagos')||'[]');}catch(e){return[];} }
+function savePagos(d){ localStorage.setItem('eco_pagos',JSON.stringify(d)); }
+
+function switchPagosTab(tab){
+  document.getElementById('tab-resumen').style.display=tab==='resumen'?'block':'none';
+  document.getElementById('tab-libro').style.display=tab==='libro'?'block':'none';
+  document.getElementById('tab-resumen-btn').style.cssText=tab==='resumen'?'border-bottom:2px solid var(--green);border-radius:0;color:var(--green);font-weight:600':'border-bottom:2px solid transparent;border-radius:0';
+  document.getElementById('tab-libro-btn').style.cssText=tab==='libro'?'border-bottom:2px solid var(--green);border-radius:0;color:var(--green);font-weight:600':'border-bottom:2px solid transparent;border-radius:0';
+  if(tab==='libro'){ renderLibro(); populateAllSelects(); }
+}
+
+// ══════════════════════════════════════════
+// EXPORT / IMPORT
+// ══════════════════════════════════════════
+function exportarJSON(){
+  const data={
+    vuelos:loadVuelos(), reservas:loadReservas(), cfg:loadCfg(),
+    pagos:loadPagos(), deudasAnt:loadDeudasAnt(),
+    pagosVuelos:loadPagosVuelos(), deudasVuelos:loadDeudasVuelos()
+  };
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));
+  a.download='ecoturismo_'+today()+'.json'; a.click();
+}
+function importarJSON(){
+  const input=document.createElement('input'); input.type='file'; input.accept='.json';
+  input.onchange=e=>{ const r=new FileReader(); r.onload=async ev=>{
+    try{ const d=JSON.parse(ev.target.result);
+      if(!confirm('¿Reemplazar todos los datos actuales en la nube?'))return;
+      showLoading('Importando datos a Firebase...');
+      if(d.vuelos){ saveVuelos(d.vuelos); }
+      if(d.reservas){ saveReservas(d.reservas); }
+      if(d.cfg){ saveCfg(d.cfg); }
+      if(d.pagos){ savePagos(d.pagos); }
+      if(d.deudasAnt){ saveDeudasAnt(d.deudasAnt); }
+      if(d.pagosVuelos){ savePagosVuelos(d.pagosVuelos); }
+      if(d.deudasVuelos){ saveDeudasVuelos(d.deudasVuelos); }
+      // Wait a moment for writes to propagate
+      await new Promise(r=>setTimeout(r,2000));
+      hideLoading();
+      populateAllSelects(); renderLista(); renderReservas(); updateDbInfo();
+      alert('Importación completada.');
+    }catch(e){hideLoading();alert('Archivo inválido: '+e.message);}
+  }; r.readAsText(e.target.files[0]); }; input.click();
+}
+async function limpiarDatos(){
+  if(!confirm('¿Eliminar TODOS los datos de la nube? No se puede deshacer.'))return;
+  showLoading('Eliminando datos...');
+  const cols=['vuelos','reservas','pagos','deudas_ant','pagos_vuelos','deudas_vuelos'];
+  for(const col of cols){
+    const items=[...(_cache[col]||[])];
+    for(const item of items) await fsDel(col, item._docId);
+    _cache[col]=[];
+  }
+  _cache['cfg_obj']=null; _cache['cfg_doc']=[];
+  hideLoading();
+  cerrarPanel(); renderLista(); renderReservas(); updateDbInfo();
+}
+
+// ══ SETUP SCREEN SAVE ══
+async function guardarConfigFirebase(){
+  const keys=['apiKey','authDomain','projectId','storageBucket','messagingSenderId','appId'];
+  const cfg={};
+  for(const k of keys){ const v=document.getElementById('fb-'+k)?.value.trim(); if(!v){alert('Completa todos los campos');return;} cfg[k]=v; }
+  saveFbCfg(cfg);
+  // Reload page so Firebase initializes fresh
+  location.reload();
+}
+
+function olvidarConfigFirebase(){
+  if(!confirm('¿Olvidar las credenciales de Firebase en este dispositivo?'))return;
+  localStorage.removeItem(FB_KEY);
+  location.reload();
+}
+
+// ══ INIT ══
+initFirebase();</script>
+<!-- FIX: hidden span needed for edit modal cant -->
+<span id="edit-res-cant-val" style="display:none"></span>
+</body>
+</html>
